@@ -1,0 +1,256 @@
+/* admin.js — admin behaviour */
+(function () {
+  "use strict";
+  var S = window.Store;
+  var A = S.Auth;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var authScreen = $("authScreen"), dashboard = $("dashboard");
+  var setupForm = $("setupForm"), loginForm = $("loginForm");
+  var draftImages = [];
+
+  function toast(msg) {
+    var t = $("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove("show"); }, 2200);
+  }
+
+  /* ============ AUTH ROUTING ============ */
+  function showAuth() {
+    authScreen.style.display = "grid";
+    dashboard.style.display = "none";
+    if (A.isConfigured()) { setupForm.style.display = "none"; loginForm.style.display = "block"; $("liEmail").focus(); }
+    else { setupForm.style.display = "block"; loginForm.style.display = "none"; $("suEmail").focus(); }
+  }
+  function showDashboard() {
+    authScreen.style.display = "none";
+    dashboard.style.display = "block";
+    $("whoEmail").textContent = A.getEmail() || "";
+    $("acEmail").value = A.getEmail() || "";
+    S.Listings.seedFromFileIfEmpty().then(renderList);
+  }
+  function route() { if (A.isLoggedIn()) showDashboard(); else showAuth(); }
+
+  /* setup */
+  $("setupBtn").addEventListener("click", async function () {
+    var email = $("suEmail").value.trim();
+    var p1 = $("suPass").value, p2 = $("suPass2").value;
+    var err = $("setupErr"); err.textContent = "";
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = "Enter a valid email address."; return; }
+    if (p1.length < 8) { err.textContent = "Password must be at least 8 characters."; return; }
+    if (p1 !== p2) { err.textContent = "Passwords don't match."; return; }
+    await A.setup(email, p1);
+    toast("Account created");
+    route();
+  });
+
+  /* login */
+  $("loginBtn").addEventListener("click", doLogin);
+  $("liPass").addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); });
+  async function doLogin() {
+    var err = $("loginErr"); err.textContent = "";
+    var ok = await A.login($("liEmail").value, $("liPass").value);
+    if (ok) { route(); } else { err.textContent = "Email or password is incorrect."; }
+  }
+
+  /* reset (clears local admin only) */
+  $("resetLink").addEventListener("click", function (e) {
+    e.preventDefault();
+    if (confirm("This clears the admin account stored on THIS device so you can set a new one. Your listings are not deleted. Continue?")) {
+      localStorage.removeItem("npc.admin.v1");
+      A.logout();
+      toast("Admin reset — set up a new account");
+      showAuth();
+    }
+  });
+
+  $("logoutBtn").addEventListener("click", function () { A.logout(); showAuth(); });
+
+  /* account update */
+  $("acSave").addEventListener("click", async function () {
+    var err = $("acErr"); err.textContent = "";
+    var email = $("acEmail").value.trim();
+    var pass = $("acPass").value;
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = "Enter a valid email."; return; }
+    if (pass && pass.length < 8) { err.textContent = "New password must be at least 8 characters."; return; }
+    var finalPass = pass || prompt("Confirm a password (min 8 chars) to re-save the account:");
+    if (!finalPass || finalPass.length < 8) { err.textContent = "Password required to update account."; return; }
+    await A.changeCredentials(email, finalPass);
+    $("acPass").value = "";
+    $("whoEmail").textContent = email;
+    toast("Account updated");
+  });
+
+  /* ============ LIST VIEW ============ */
+  var listView = $("listView"), editView = $("editView");
+  function renderList() {
+    var list = S.Listings.all() || [];
+    var box = $("adminList");
+    if (!list.length) {
+      box.innerHTML = '<div class="empty"><strong>No listings yet</strong>Click “+ New listing” to add your first property.</div>';
+      return;
+    }
+    box.innerHTML = list.map(function (l) {
+      var sc = l.status === "rent" ? "rent" : l.status === "sold" ? "sold" : "";
+      return '' +
+        '<div class="row">' +
+          '<img class="row-thumb" src="' + S.firstImage(l) + '" alt="">' +
+          '<div class="row-main">' +
+            '<div class="r-title">' + S.escapeHtml(l.title || l.address || "Untitled") +
+              '<span class="row-badge ' + sc + '">' + S.statusLabel(l.status) + '</span></div>' +
+            '<div class="r-sub">' + S.escapeHtml([l.address, l.suburb].filter(Boolean).join(", ")) +
+              ' · ' + S.escapeHtml(S.priceDisplay(l)) + '</div>' +
+          '</div>' +
+          '<div class="row-actions">' +
+            '<button class="icon-btn" data-edit="' + l.id + '">Edit</button>' +
+            '<button class="icon-btn danger" data-del="' + l.id + '">Delete</button>' +
+          '</div>' +
+        '</div>';
+    }).join("");
+  }
+
+  $("adminList").addEventListener("click", function (e) {
+    var ed = e.target.getAttribute("data-edit");
+    var dl = e.target.getAttribute("data-del");
+    if (ed) openEditor(ed);
+    if (dl) {
+      var l = S.Listings.get(dl);
+      if (confirm('Delete "' + (l ? (l.title || l.address) : "this listing") + '"? This cannot be undone.')) {
+        S.Listings.remove(dl); renderList(); toast("Listing deleted");
+      }
+    }
+  });
+
+  $("newBtn").addEventListener("click", function () { openEditor(null); });
+  $("backBtn").addEventListener("click", showList);
+  $("cancelBtn").addEventListener("click", showList);
+
+  function showList() { editView.style.display = "none"; listView.style.display = "block"; renderList(); }
+  function showEdit() { listView.style.display = "none"; editView.style.display = "block"; window.scrollTo(0, 0); }
+
+  /* ============ EDITOR ============ */
+  function openEditor(id) {
+    var l = id ? S.Listings.get(id) : null;
+    $("editHeading").textContent = l ? "Edit listing" : "New listing";
+    $("fId").value = l ? l.id : "";
+    $("fTitle").value = l ? (l.title || "") : "";
+    $("fStatus").value = l ? (l.status || "sale") : "sale";
+    $("fTypeSel").value = l ? (l.type || "House") : "House";
+    $("fPrice").value = l && l.price != null ? l.price : "";
+    $("fPriceText").value = l ? (l.priceText || "") : "";
+    $("fAddress").value = l ? (l.address || "") : "";
+    $("fSuburb").value = l ? (l.suburb || "") : "";
+    $("fState").value = l ? (l.state || "VIC") : "VIC";
+    $("fPostcode").value = l ? (l.postcode || "") : "";
+    $("fBeds").value = l ? (l.beds || "") : "";
+    $("fBaths").value = l ? (l.baths || "") : "";
+    $("fCars").value = l ? (l.cars || "") : "";
+    $("fLand").value = l ? (l.land || "") : "";
+    $("fDesc").value = l ? (l.description || "") : "";
+    $("fFeatures").value = l && l.features ? l.features.join("\n") : "";
+    $("fAgentName").value = l ? (l.agentName || "") : "";
+    $("fAgentPhone").value = l ? (l.agentPhone || "") : "";
+    $("fAgentEmail").value = l ? (l.agentEmail || "") : "";
+    draftImages = l && l.images ? l.images.slice() : [];
+    renderThumbs();
+    showEdit();
+  }
+
+  function renderThumbs() {
+    $("thumbs").innerHTML = draftImages.map(function (src, i) {
+      return '<div class="thumb"><img src="' + src + '" alt=""><button class="del" data-i="' + i + '" title="Remove">×</button></div>';
+    }).join("");
+  }
+  $("thumbs").addEventListener("click", function (e) {
+    var i = e.target.getAttribute("data-i");
+    if (i !== null) { draftImages.splice(Number(i), 1); renderThumbs(); }
+  });
+
+  /* image upload + drag/drop */
+  var dz = $("dropzone"), fileInput = $("fImages");
+  dz.addEventListener("click", function () { fileInput.click(); });
+  fileInput.addEventListener("change", function () { ingest(fileInput.files); fileInput.value = ""; });
+  ["dragover", "dragenter"].forEach(function (ev) {
+    dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.add("drag"); });
+  });
+  ["dragleave", "drop"].forEach(function (ev) {
+    dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.remove("drag"); });
+  });
+  dz.addEventListener("drop", function (e) { if (e.dataTransfer && e.dataTransfer.files) ingest(e.dataTransfer.files); });
+
+  async function ingest(files) {
+    var arr = Array.prototype.slice.call(files);
+    for (var i = 0; i < arr.length; i++) {
+      try { var url = await S.fileToResizedDataURL(arr[i]); draftImages.push(url); renderThumbs(); }
+      catch (e) { toast("Skipped a file that isn't an image"); }
+    }
+  }
+
+  /* save */
+  $("saveBtn").addEventListener("click", function () {
+    var item = {
+      id: $("fId").value || "",
+      title: $("fTitle").value.trim(),
+      status: $("fStatus").value,
+      type: $("fTypeSel").value,
+      price: $("fPrice").value === "" ? null : Number($("fPrice").value),
+      priceText: $("fPriceText").value.trim(),
+      address: $("fAddress").value.trim(),
+      suburb: $("fSuburb").value.trim(),
+      state: $("fState").value.trim(),
+      postcode: $("fPostcode").value.trim(),
+      beds: $("fBeds").value === "" ? null : Number($("fBeds").value),
+      baths: $("fBaths").value === "" ? null : Number($("fBaths").value),
+      cars: $("fCars").value === "" ? null : Number($("fCars").value),
+      land: $("fLand").value.trim(),
+      description: $("fDesc").value.trim(),
+      features: $("fFeatures").value.split("\n").map(function (s) { return s.trim(); }).filter(Boolean),
+      agentName: $("fAgentName").value.trim(),
+      agentPhone: $("fAgentPhone").value.trim(),
+      agentEmail: $("fAgentEmail").value.trim(),
+      images: draftImages.slice()
+    };
+    if (!item.title && !item.address) { toast("Add a headline or address first"); return; }
+    var existing = $("fId").value ? S.Listings.get($("fId").value) : null;
+    if (existing) item.createdAt = existing.createdAt;
+    try {
+      S.Listings.upsert(item);
+      toast("Listing saved");
+      showList();
+    } catch (e) {
+      // localStorage quota is the usual culprit with many large images
+      alert("Couldn't save — you may have hit the browser storage limit. Try fewer/smaller images, or move to the Supabase setup in the README for unlimited storage.");
+    }
+  });
+
+  /* ============ IMPORT / EXPORT ============ */
+  $("exportBtn").addEventListener("click", function () {
+    var data = JSON.stringify(S.Listings.all() || [], null, 2);
+    var blob = new Blob([data], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "listings.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast("Exported — commit this to data/listings.json");
+  });
+
+  $("importBtn").addEventListener("click", function () { $("importFile").click(); });
+  $("importFile").addEventListener("change", function () {
+    var f = $("importFile").files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      try {
+        var data = JSON.parse(r.result);
+        if (!Array.isArray(data)) throw new Error("not an array");
+        if (confirm("Replace your current listings with " + data.length + " imported listing(s)?")) {
+          S.Listings.save(data); renderList(); toast("Imported " + data.length + " listing(s)");
+        }
+      } catch (e) { alert("That file isn't a valid listings.json export."); }
+      $("importFile").value = "";
+    };
+    r.readAsText(f);
+  });
+
+  /* boot */
+  route();
+})();

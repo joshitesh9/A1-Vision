@@ -1,0 +1,198 @@
+/* public.js — homepage behaviour */
+(function () {
+  "use strict";
+  var S = window.Store;
+  var ALL = [];
+  var state = { status: "sale", q: "", type: "", beds: "", max: "" };
+
+  var grid = document.getElementById("grid");
+  var listTitle = document.getElementById("listTitle");
+  var listCount = document.getElementById("listCount");
+
+  document.getElementById("yr").textContent = new Date().getFullYear();
+
+  /* ---- spec chips ---- */
+  function specRow(l, includeArea) {
+    var bits = [];
+    if (l.beds)  bits.push('<span class="spec">' + S.ICONS.bed  + (l.beds) + '</span>');
+    if (l.baths) bits.push('<span class="spec">' + S.ICONS.bath + (l.baths) + '</span>');
+    if (l.cars)  bits.push('<span class="spec">' + S.ICONS.car  + (l.cars) + '</span>');
+    if (includeArea && l.land) bits.push('<span class="spec area">' + S.ICONS.area + S.escapeHtml(l.land) + '</span>');
+    return bits.join("");
+  }
+
+  /* ---- card ---- */
+  function cardHtml(l) {
+    var statusClass = l.status === "rent" ? "rent" : l.status === "sold" ? "sold" : "";
+    return '' +
+      '<article class="card" tabindex="0" data-id="' + l.id + '">' +
+        '<div class="card-media">' +
+          '<span class="tag ' + statusClass + '">' + S.statusLabel(l.status) + '</span>' +
+          '<img loading="lazy" src="' + S.firstImage(l) + '" alt="' + S.escapeHtml(l.title) + '">' +
+        '</div>' +
+        '<div class="card-body">' +
+          '<div class="card-price">' + S.escapeHtml(S.priceDisplay(l)) + '</div>' +
+          '<div class="card-addr">' + S.escapeHtml(l.title || l.address || "") + '</div>' +
+          '<div class="card-sub">' + S.escapeHtml([l.address, l.suburb].filter(Boolean).join(", ")) + '</div>' +
+          '<div class="specs">' + specRow(l, true) + '</div>' +
+        '</div>' +
+      '</article>';
+  }
+
+  /* ---- filtering ---- */
+  function matches(l) {
+    if (l.status !== state.status) return false;
+    if (state.type && l.type !== state.type) return false;
+    if (state.beds && Number(l.beds || 0) < Number(state.beds)) return false;
+    if (state.max && l.price && Number(l.price) > Number(state.max)) return false;
+    if (state.q) {
+      var hay = [l.title, l.address, l.suburb, l.type, l.description].join(" ").toLowerCase();
+      if (hay.indexOf(state.q.toLowerCase()) === -1) return false;
+    }
+    return true;
+  }
+
+  function render() {
+    var titleMap = { sale: "Homes for sale", rent: "Homes for rent", sold: "Recently sold" };
+    listTitle.textContent = titleMap[state.status];
+    var rows = ALL.filter(matches);
+    if (!rows.length) {
+      grid.innerHTML = '<div class="empty"><strong>No matching listings yet</strong>' +
+        'Try clearing the filters, or check back soon — new properties are added regularly.</div>';
+      listCount.textContent = "";
+      return;
+    }
+    listCount.textContent = rows.length + (rows.length === 1 ? " property" : " properties");
+    grid.innerHTML = rows.map(cardHtml).join("");
+  }
+
+  /* ---- hero featured ---- */
+  function fillHero() {
+    document.getElementById("statSale").textContent = ALL.filter(function (l) { return l.status === "sale"; }).length;
+    document.getElementById("statRent").textContent = ALL.filter(function (l) { return l.status === "rent"; }).length;
+    document.getElementById("statSold").textContent = ALL.filter(function (l) { return l.status === "sold"; }).length;
+    var feat = ALL.filter(function (l) { return l.status === "sale"; })[0] || ALL[0];
+    if (!feat) return;
+    document.getElementById("haPrice").textContent = S.priceDisplay(feat);
+    document.getElementById("haAddr").textContent = [feat.address, feat.suburb].filter(Boolean).join(", ") || feat.title;
+    document.getElementById("haSpecs").innerHTML = specRow(feat, true);
+  }
+
+  /* ---- detail modal ---- */
+  var modalBack = document.getElementById("modalBack");
+  function openDetail(id) {
+    var l = ALL.filter(function (x) { return x.id === id; })[0];
+    if (!l) return;
+    var imgs = (l.images && l.images.length) ? l.images : [S.firstImage(l)];
+    var hero = document.getElementById("mHero");
+    hero.src = imgs[0]; hero.alt = l.title || "";
+    var tag = document.getElementById("mTag");
+    tag.className = "tag " + (l.status === "rent" ? "rent" : l.status === "sold" ? "sold" : "");
+    tag.textContent = S.statusLabel(l.status);
+    document.getElementById("mTitle").textContent = l.title || l.address || "";
+    document.getElementById("mAddr").textContent = [l.address, l.suburb, l.state, l.postcode].filter(Boolean).join(", ");
+    document.getElementById("mPrice").textContent = S.priceDisplay(l);
+    document.getElementById("mSpecs").innerHTML = specRow(l, true);
+    document.getElementById("mDesc").textContent = l.description || "";
+
+    var feats = document.getElementById("mFeatures");
+    feats.innerHTML = (l.features || []).filter(Boolean)
+      .map(function (f) { return "<li>" + S.escapeHtml(f) + "</li>"; }).join("");
+
+    var thumbs = document.getElementById("mThumbs");
+    thumbs.innerHTML = imgs.map(function (src, i) {
+      return '<img src="' + src + '" class="' + (i === 0 ? "is-active" : "") + '" data-src="' + src + '" alt="">';
+    }).join("");
+    thumbs.style.display = imgs.length > 1 ? "flex" : "none";
+    thumbs.querySelectorAll("img").forEach(function (t) {
+      t.addEventListener("click", function () {
+        hero.src = t.getAttribute("data-src");
+        thumbs.querySelectorAll("img").forEach(function (x) { x.classList.remove("is-active"); });
+        t.classList.add("is-active");
+      });
+    });
+
+    var name = l.agentName || "Northline Property";
+    var phone = l.agentPhone || "03 9000 0000";
+    var email = l.agentEmail || "hello@northline.example";
+    document.getElementById("mAgent").innerHTML =
+      '<div><div class="a-name">' + S.escapeHtml(name) + '</div>' +
+      '<div class="a-meta">' + S.escapeHtml(phone) + ' · ' + S.escapeHtml(email) + '</div></div>' +
+      '<div class="agent-cta">' +
+        '<a class="btn btn-dark" href="tel:' + S.escapeHtml(phone.replace(/\s/g, "")) + '">Call</a>' +
+        '<a class="btn btn-primary" href="mailto:' + S.escapeHtml(email) +
+          '?subject=' + encodeURIComponent("Enquiry: " + (l.title || l.address || "listing")) + '">Email enquiry</a>' +
+      '</div>';
+
+    modalBack.classList.add("open");
+    modalBack.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+  function closeDetail() {
+    modalBack.classList.remove("open");
+    modalBack.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+  document.getElementById("modalX").addEventListener("click", closeDetail);
+  modalBack.addEventListener("click", function (e) { if (e.target === modalBack) closeDetail(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDetail(); });
+
+  grid.addEventListener("click", function (e) {
+    var card = e.target.closest(".card"); if (card) openDetail(card.getAttribute("data-id"));
+  });
+  grid.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") {
+      var card = e.target.closest(".card");
+      if (card) { e.preventDefault(); openDetail(card.getAttribute("data-id")); }
+    }
+  });
+
+  /* ---- controls ---- */
+  var tabs = document.getElementById("statusTabs");
+  tabs.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    state.status = b.getAttribute("data-status");
+    tabs.querySelectorAll("button").forEach(function (x) { x.classList.toggle("is-active", x === b); });
+    syncNav();
+    render();
+  });
+
+  function syncNav() {
+    document.querySelectorAll("#nav a[data-filter]").forEach(function (a) {
+      a.classList.toggle("is-active", a.getAttribute("data-filter") === state.status);
+    });
+  }
+  document.querySelectorAll("#nav a[data-filter]").forEach(function (a) {
+    a.addEventListener("click", function () {
+      state.status = a.getAttribute("data-filter");
+      tabs.querySelectorAll("button").forEach(function (x) {
+        x.classList.toggle("is-active", x.getAttribute("data-status") === state.status);
+      });
+      syncNav();
+      render();
+      document.getElementById("nav").classList.remove("open");
+    });
+  });
+
+  function applySearch() {
+    state.q = document.getElementById("q").value.trim();
+    state.type = document.getElementById("fType").value;
+    state.beds = document.getElementById("fBeds").value;
+    state.max = document.getElementById("fMax").value;
+    render();
+    document.getElementById("listings").scrollIntoView({ behavior: "smooth" });
+  }
+  document.getElementById("searchBtn").addEventListener("click", applySearch);
+  document.getElementById("q").addEventListener("keydown", function (e) { if (e.key === "Enter") applySearch(); });
+
+  document.getElementById("menuBtn").addEventListener("click", function () {
+    document.getElementById("nav").classList.toggle("open");
+  });
+
+  /* ---- boot ---- */
+  S.Listings.loadForPublic().then(function (list) {
+    ALL = list || [];
+    fillHero();
+    render();
+  });
+})();

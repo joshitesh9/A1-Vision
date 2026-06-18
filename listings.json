@@ -1,0 +1,206 @@
+/* ============================================================
+   store.js — data layer, auth, and shared helpers
+   Works with zero backend (localStorage + an optional
+   committed data/listings.json file). Structured so the
+   storage calls can later be swapped for Supabase/Firebase.
+   ============================================================ */
+(function (global) {
+  "use strict";
+
+  var KEY_LISTINGS = "npc.listings.v1";
+  var KEY_ADMIN    = "npc.admin.v1";       // { email, salt, hash }
+  var KEY_SESSION  = "npc.session.v1";     // sessionStorage flag
+
+  /* ---------- tiny utils ---------- */
+  function uid() {
+    return "lst_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+  function read(key, fallback) {
+    try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+    catch (e) { return fallback; }
+  }
+  function write(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+  /* ---------- password hashing (Web Crypto, SHA-256) ----------
+     NOTE: client-side hashing is a starter gate, not real
+     security. Anyone can read this code. For production use the
+     Supabase path in the README (real server-side auth).         */
+  function randomSalt() {
+    var a = new Uint8Array(16);
+    crypto.getRandomValues(a);
+    return Array.from(a).map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+  }
+  async function hash(salt, password) {
+    var enc = new TextEncoder().encode(salt + ":" + password);
+    var buf = await crypto.subtle.digest("SHA-256", enc);
+    return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+  }
+
+  /* ---------- admin / auth ---------- */
+  var Auth = {
+    isConfigured: function () { return !!read(KEY_ADMIN, null); },
+    getEmail: function () { var a = read(KEY_ADMIN, null); return a ? a.email : null; },
+    isLoggedIn: function () { return sessionStorage.getItem(KEY_SESSION) === "1"; },
+
+    setup: async function (email, password) {
+      var salt = randomSalt();
+      var h = await hash(salt, password);
+      write(KEY_ADMIN, { email: email.trim().toLowerCase(), salt: salt, hash: h });
+      sessionStorage.setItem(KEY_SESSION, "1");
+    },
+
+    login: async function (email, password) {
+      var a = read(KEY_ADMIN, null);
+      if (!a) return false;
+      if (email.trim().toLowerCase() !== a.email) return false;
+      var h = await hash(a.salt, password);
+      if (h === a.hash) { sessionStorage.setItem(KEY_SESSION, "1"); return true; }
+      return false;
+    },
+
+    changeCredentials: async function (newEmail, newPassword) {
+      var salt = randomSalt();
+      var h = await hash(salt, newPassword);
+      write(KEY_ADMIN, { email: newEmail.trim().toLowerCase(), salt: salt, hash: h });
+    },
+
+    logout: function () { sessionStorage.removeItem(KEY_SESSION); }
+  };
+
+  /* ---------- listings store ----------
+     Reading order for the PUBLIC site:
+       1. localStorage (admin's live edits on this device)
+       2. else data/listings.json (the committed published file)
+     The admin EXPORTS listings.json to publish for everyone.    */
+  var Listings = {
+    all: function () { return read(KEY_LISTINGS, null); },
+
+    // used by the public page: prefer local edits, fall back to published file
+    loadForPublic: async function () {
+      var local = read(KEY_LISTINGS, null);
+      if (local && local.length) return local;
+      try {
+        var res = await fetch("data/listings.json", { cache: "no-store" });
+        if (res.ok) {
+          var data = await res.json();
+          if (Array.isArray(data) && data.length) return data;
+        }
+      } catch (e) { /* file not present yet — fine */ }
+      return local || [];
+    },
+
+    save: function (list) { write(KEY_LISTINGS, list); },
+
+    get: function (id) {
+      var list = read(KEY_LISTINGS, []);
+      return list.filter(function (l) { return l.id === id; })[0] || null;
+    },
+
+    upsert: function (item) {
+      var list = read(KEY_LISTINGS, []);
+      if (!item.id) { item.id = uid(); item.createdAt = Date.now(); list.unshift(item); }
+      else {
+        var found = false;
+        list = list.map(function (l) { if (l.id === item.id) { found = true; return item; } return l; });
+        if (!found) { list.unshift(item); }
+      }
+      write(KEY_LISTINGS, list);
+      return item;
+    },
+
+    remove: function (id) {
+      var list = read(KEY_LISTINGS, []).filter(function (l) { return l.id !== id; });
+      write(KEY_LISTINGS, list);
+    },
+
+    // seed the local store from the committed file (first run convenience)
+    seedFromFileIfEmpty: async function () {
+      if (read(KEY_LISTINGS, null)) return;
+      try {
+        var res = await fetch("data/listings.json", { cache: "no-store" });
+        if (res.ok) { var data = await res.json(); if (Array.isArray(data)) write(KEY_LISTINGS, data); }
+      } catch (e) {}
+    }
+  };
+
+  /* ---------- image handling: resize + compress before storing ----------
+     localStorage is small (~5MB), so we downscale to max 1280px
+     and store JPEG data URLs. Keeps things snappy and within budget. */
+  function fileToResizedDataURL(file, maxDim, quality) {
+    maxDim = maxDim || 1280; quality = quality || 0.82;
+    return new Promise(function (resolve, reject) {
+      if (!/^image\//.test(file.type)) { reject(new Error("Not an image")); return; }
+      var reader = new FileReader();
+      reader.onload = function () {
+        var img = new Image();
+        img.onload = function () {
+          var w = img.width, h = img.height;
+          if (w > h && w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+          else if (h >= w && h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+          var c = document.createElement("canvas");
+          c.width = w; c.height = h;
+          c.getContext("2d").drawImage(img, 0, 0, w, h);
+          resolve(c.toDataURL("image/jpeg", quality));
+        };
+        img.onerror = function () { reject(new Error("Bad image")); };
+        img.src = reader.result;
+      };
+      reader.onerror = function () { reject(new Error("Read failed")); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /* ---------- placeholder art (no external assets / no copyright) ---------- */
+  function placeholder(seedText) {
+    var greens = ["#25382C", "#2c5f7a", "#3a4d3e", "#5a4a3a", "#43504a"];
+    var i = 0, s = seedText || "Northline";
+    for (var k = 0; k < s.length; k++) i += s.charCodeAt(k);
+    var c1 = greens[i % greens.length];
+    var label = (s.split(",")[0] || s).slice(0, 22);
+    var svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600">' +
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0" stop-color="' + c1 + '"/><stop offset="1" stop-color="#14201a"/>' +
+      '</linearGradient></defs><rect width="800" height="600" fill="url(#g)"/>' +
+      '<path d="M250 380 L400 250 L550 380 L550 470 L250 470 Z" fill="rgba(255,255,255,.10)"/>' +
+      '<rect x="370" y="400" width="60" height="70" fill="rgba(255,255,255,.16)"/>' +
+      '<text x="400" y="540" fill="rgba(255,255,255,.78)" font-family="sans-serif" font-size="30" ' +
+      'font-weight="700" text-anchor="middle">' + label + '</text></svg>';
+    return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+  }
+
+  /* ---------- shared formatting + spec icons ---------- */
+  var ICONS = {
+    bed:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6M3 14h18M7 10V8a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M3 18v2M21 18v2"/></svg>',
+    bath: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-3ZM6 12V6a2 2 0 0 1 2-2 2 2 0 0 1 2 2M7 19l-1 2M18 19l1 2"/></svg>',
+    car:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 13l1.5-4.5A2 2 0 0 1 8.4 7h7.2a2 2 0 0 1 1.9 1.5L19 13M5 13h14v4a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1M5 13v4a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1M7.5 16h0M16.5 16h0"/></svg>',
+    area: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4zM4 9h16M9 4v16"/></svg>'
+  };
+  function money(n) {
+    if (n === null || n === undefined || n === "") return "";
+    var num = Number(n);
+    if (isNaN(num)) return String(n);
+    return "$" + num.toLocaleString("en-AU");
+  }
+  function statusLabel(s) { return s === "rent" ? "For Rent" : s === "sold" ? "Sold" : "For Sale"; }
+  function priceDisplay(l) {
+    if (l.priceText) return l.priceText;
+    var m = money(l.price);
+    if (!m) return "Contact agent";
+    return l.status === "rent" ? m + " / week" : m;
+  }
+  function firstImage(l) { return (l.images && l.images[0]) || placeholder(l.suburb || l.title); }
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  global.Store = {
+    Auth: Auth, Listings: Listings,
+    fileToResizedDataURL: fileToResizedDataURL,
+    placeholder: placeholder, ICONS: ICONS,
+    money: money, statusLabel: statusLabel, priceDisplay: priceDisplay,
+    firstImage: firstImage, escapeHtml: escapeHtml, uid: uid
+  };
+})(window);
