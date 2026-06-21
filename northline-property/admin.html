@@ -378,16 +378,38 @@ textarea.input { min-height: 120px; resize: vertical; }
 <body>
 <div class="admin-shell">
 
-  <!-- ============ AUTH (login only — accounts are owner-provisioned) ============ -->
+  <!-- ============ AUTH (setup or login) ============ -->
   <section class="auth-screen" id="authScreen">
     <div class="auth-card">
       <div class="brand">
         <span class="brand-mark">A1</span><span class="brand-name">A1 Vision<span>.</span></span>
       </div>
 
-      <div id="loginForm">
-        <h1>Staff sign in</h1>
-        <p class="sub">Sign in with the email and password your administrator gave you.</p>
+      <!-- first-run setup -->
+      <div id="setupForm">
+        <h1>Create your admin account</h1>
+        <p class="sub">This is the first time you've opened the admin. Set the email and password you'll use to sign in.</p>
+        <div class="field-group">
+          <label for="suEmail">Email (your username)</label>
+          <input class="input" id="suEmail" type="email" autocomplete="username" placeholder="you@example.com" />
+        </div>
+        <div class="field-group">
+          <label for="suPass">Password</label>
+          <input class="input" id="suPass" type="password" autocomplete="new-password" placeholder="At least 8 characters" />
+        </div>
+        <div class="field-group">
+          <label for="suPass2">Confirm password</label>
+          <input class="input" id="suPass2" type="password" autocomplete="new-password" placeholder="Re-enter password" />
+        </div>
+        <button class="btn btn-dark btn-block" id="setupBtn">Create account &amp; sign in</button>
+        <div class="error-msg" id="setupErr"></div>
+        <div class="note"><b>Heads up:</b> on a static GitHub Pages site this login runs in the browser only — it's a starter gate, not real security, and your account is stored on this device. See the README for the Supabase upgrade that adds proper server-side login.</div>
+      </div>
+
+      <!-- login -->
+      <div id="loginForm" style="display:none">
+        <h1>Sign in</h1>
+        <p class="sub">Welcome back. Sign in to manage your listings.</p>
         <div class="field-group">
           <label for="liEmail">Email</label>
           <input class="input" id="liEmail" type="email" autocomplete="username" placeholder="you@example.com" />
@@ -398,37 +420,9 @@ textarea.input { min-height: 120px; resize: vertical; }
         </div>
         <button class="btn btn-dark btn-block" id="loginBtn">Sign in</button>
         <div class="error-msg" id="loginErr"></div>
-        <p class="hint" id="demoHint" style="text-align:center;margin-top:10px"></p>
-
-        <p class="hint" style="text-align:center;margin-top:16px">
-          <a href="#" id="provToggle" style="color:var(--clay-dark);font-weight:600">Owner: set up staff accounts</a>
+        <p class="hint" style="text-align:center;margin-top:14px">
+          Forgot the password? <a href="#" id="resetLink" style="color:var(--clay-dark);font-weight:600">Reset admin on this device</a>
         </p>
-
-        <!-- OWNER PROVISIONING TOOL -->
-        <div id="provPanel" style="display:none">
-          <div class="note" style="margin-top:6px">
-            Generate a line for each staff member, then paste it into the
-            <b>PROVISIONED_USERS</b> list inside <b>admin.html</b> and commit. This keeps plain
-            passwords out of your code. Give each person their email + password directly.
-          </div>
-          <div class="field-group" style="margin-top:12px">
-            <label for="provEmail">Staff email</label>
-            <input class="input" id="provEmail" type="email" placeholder="jess@youragency.com" />
-          </div>
-          <div class="field-group">
-            <label for="provPass">Initial password (min 8 chars)</label>
-            <input class="input" id="provPass" type="text" placeholder="give them this password" />
-          </div>
-          <button class="btn btn-ghost btn-block" id="provGen">Generate account line</button>
-          <textarea class="input" id="provOut" readonly rows="2" style="margin-top:10px;font-family:monospace;font-size:12px" placeholder="// generated code appears here"></textarea>
-          <button class="btn btn-primary btn-block" id="provCopy" style="margin-top:8px">Copy</button>
-        </div>
-
-        <div class="note" style="margin-top:16px">
-          <b>Heads up:</b> on a static GitHub Pages site this sign-in runs in the browser — it's a
-          basic gate, not real security, and password changes save only on the device used. For a
-          truly private admin with real accounts, see the README (Cloudflare Access / Supabase).
-        </div>
       </div>
     </div>
   </section>
@@ -535,7 +529,7 @@ textarea.input { min-height: 120px; resize: vertical; }
               <div class="col-3">
                 <div class="field-group"><label for="fAgentName">Agent name</label><input class="input" id="fAgentName" placeholder="Sam Rao" /></div>
                 <div class="field-group"><label for="fAgentPhone">Agent phone</label><input class="input" id="fAgentPhone" placeholder="0400 000 000" /></div>
-                <div class="field-group"><label for="fAgentEmail">Agent email</label><input class="input" id="fAgentEmail" placeholder="sam@a1vision.com.au" /></div>
+                <div class="field-group"><label for="fAgentEmail">Agent email</label><input class="input" id="fAgentEmail" placeholder="sam@A1 Vision.example" /></div>
               </div>
 
               <div class="col-span field-group">
@@ -556,20 +550,15 @@ textarea.input { min-height: 120px; resize: vertical; }
           </div>
         </div>
 
-        <!-- account: change own password -->
+        <!-- account settings -->
         <div class="editor" style="margin-top:30px">
-          <h2>Your account</h2>
-          <p class="hint" style="margin-top:-8px;margin-bottom:16px">
-            Signed in as <b id="acEmailLabel"></b>. Change your password below. (On this static
-            setup the change is saved on this device only.)
-          </p>
-          <input type="hidden" id="acEmail" />
+          <h2>Account</h2>
+          <p class="hint" style="margin-top:-8px;margin-bottom:16px">Update the email and password you use to sign in.</p>
           <div class="form-grid">
-            <div class="field-group col-span"><label for="acCurrent">Current password</label><input class="input" id="acCurrent" type="password" autocomplete="current-password" /></div>
-            <div class="field-group"><label for="acPass">New password</label><input class="input" id="acPass" type="password" autocomplete="new-password" placeholder="At least 8 characters" /></div>
-            <div class="field-group"><label for="acPass2">Confirm new password</label><input class="input" id="acPass2" type="password" autocomplete="new-password" /></div>
+            <div class="field-group"><label for="acEmail">Email</label><input class="input" id="acEmail" type="email" /></div>
+            <div class="field-group"><label for="acPass">New password</label><input class="input" id="acPass" type="password" placeholder="Leave blank to keep current" autocomplete="new-password" /></div>
           </div>
-          <div class="editor-actions"><button class="btn btn-dark" id="acSave">Change password</button></div>
+          <div class="editor-actions"><button class="btn btn-dark" id="acSave">Update account</button></div>
           <div class="error-msg" id="acErr"></div>
         </div>
 
@@ -585,76 +574,141 @@ window.SEED_LISTINGS = [
   {
     "id": "lst_seed1",
     "title": "Light-filled family home with park frontage",
-    "status": "sale", "type": "House", "price": 765000, "priceText": "",
-    "address": "12 Saltbush Way", "suburb": "Tarneit", "state": "VIC", "postcode": "3029",
-    "beds": 4, "baths": 2, "cars": 2, "land": "448 m²",
-    "description": "A bright, well-planned home directly opposite parkland. Open living flows to an alfresco and low-maintenance yard, with a separate lounge and a dedicated study nook. Walk to schools, the town centre and bus routes.",
+    "status": "sale",
+    "type": "House",
+    "price": 765000,
+    "priceText": "",
+    "address": "12 Banksia Rise",
+    "suburb": "Wollert",
+    "state": "VIC",
+    "postcode": "3750",
+    "beds": 4,
+    "baths": 2,
+    "cars": 2,
+    "land": "448 m²",
+    "description": "A bright, well-planned home directly opposite parkland. Open living flows to an alfresco and low-maintenance yard, with a separate lounge and a dedicated study nook. Walk to schools, the town centre and bus routes.\n\nMoments to the Edgars Creek trail and a short drive to the freeway.",
     "features": ["Ducted heating & evaporative cooling", "Stone kitchen with walk-in pantry", "Double remote garage", "Solar panels", "Park frontage", "Walk to schools"],
-    "agentName": "Sam Rao", "agentPhone": "0400 111 222", "agentEmail": "sam@a1vision.com.au",
-    "images": [], "createdAt": 1718000000000
+    "agentName": "Sam Rao",
+    "agentPhone": "0400 111 222",
+    "agentEmail": "sam@A1 Vision.example",
+    "images": [],
+    "createdAt": 1718000000000
   },
   {
     "id": "lst_seed2",
-    "title": "Stylish townhouse moments from the station",
-    "status": "sale", "type": "Townhouse", "price": 545000, "priceText": "",
-    "address": "3/40 Leakes Road", "suburb": "Truganina", "state": "VIC", "postcode": "3029",
-    "beds": 3, "baths": 2, "cars": 1, "land": "210 m²",
-    "description": "Low-maintenance living with quality finishes throughout. Generous bedrooms upstairs, a sleek kitchen and a private courtyard. Ideal first home or investment, close to transport and shops.",
-    "features": ["European appliances", "Split-system heating & cooling", "Private courtyard", "Close to transport", "Single garage plus extra space"],
-    "agentName": "Priya Nair", "agentPhone": "0400 333 444", "agentEmail": "priya@a1vision.com.au",
-    "images": [], "createdAt": 1718000010000
+    "title": "Stylish townhouse moments from the train",
+    "status": "sale",
+    "type": "Townhouse",
+    "price": 545000,
+    "priceText": "",
+    "address": "3/40 Hardy Street",
+    "suburb": "Craigieburn",
+    "state": "VIC",
+    "postcode": "3064",
+    "beds": 3,
+    "baths": 2,
+    "cars": 1,
+    "land": "210 m²",
+    "description": "Low-maintenance living with quality finishes throughout. Generous bedrooms upstairs, a sleek kitchen and a private courtyard. Ideal first home or investment, walking distance to Craigieburn Station.",
+    "features": ["European appliances", "Split-system heating & cooling", "Private courtyard", "Walk to station", "Single garage plus extra space"],
+    "agentName": "Priya Nair",
+    "agentPhone": "0400 333 444",
+    "agentEmail": "priya@A1 Vision.example",
+    "images": [],
+    "createdAt": 1718000010000
   },
   {
     "id": "lst_seed3",
     "title": "Brand-new four-bedroom on a corner block",
-    "status": "sale", "type": "House", "price": 899000, "priceText": "",
-    "address": "5 Sunraysia Drive", "suburb": "Werribee", "state": "VIC", "postcode": "3030",
-    "beds": 4, "baths": 2, "cars": 2, "land": "512 m²",
+    "status": "sale",
+    "type": "House",
+    "price": 899000,
+    "priceText": "",
+    "address": "5 Taketa Way",
+    "suburb": "Kalkallo",
+    "state": "VIC",
+    "postcode": "3064",
+    "beds": 4,
+    "baths": 2,
+    "cars": 2,
+    "land": "512 m²",
     "description": "Modern family living with space to grow. Multiple living zones, a designer kitchen with butler's pantry, and a master suite with walk-in robe and ensuite. Quality build on a sought-after corner allotment.",
     "features": ["Butler's pantry", "Two living zones", "Master with WIR & ensuite", "Ducted heating", "Landscaped gardens", "Corner block"],
-    "agentName": "Sam Rao", "agentPhone": "0400 111 222", "agentEmail": "sam@a1vision.com.au",
-    "images": [], "createdAt": 1718000020000
+    "agentName": "Sam Rao",
+    "agentPhone": "0400 111 222",
+    "agentEmail": "sam@A1 Vision.example",
+    "images": [],
+    "createdAt": 1718000020000
   },
   {
     "id": "lst_seed4",
     "title": "Neat three-bedroom rental close to shops",
-    "status": "rent", "type": "House", "price": 520, "priceText": "",
-    "address": "8 Marigold Avenue", "suburb": "Hoppers Crossing", "state": "VIC", "postcode": "3029",
-    "beds": 3, "baths": 2, "cars": 2, "land": "400 m²",
+    "status": "rent",
+    "type": "House",
+    "price": 520,
+    "priceText": "",
+    "address": "8 Marigold Avenue",
+    "suburb": "Mickleham",
+    "state": "VIC",
+    "postcode": "3064",
+    "beds": 3,
+    "baths": 2,
+    "cars": 2,
+    "land": "400 m²",
     "description": "Comfortable family home available now. Open-plan living, a well-equipped kitchen and a secure backyard. Close to shops, schools and parks. Pets considered on application.",
     "features": ["Dishwasher", "Split-system cooling", "Secure yard", "Close to shops", "Available now"],
-    "agentName": "Priya Nair", "agentPhone": "0400 333 444", "agentEmail": "rentals@a1vision.com.au",
-    "images": [], "createdAt": 1718000030000
+    "agentName": "Priya Nair",
+    "agentPhone": "0400 333 444",
+    "agentEmail": "rentals@A1 Vision.example",
+    "images": [],
+    "createdAt": 1718000030000
   },
   {
     "id": "lst_seed5",
     "title": "Modern two-bed apartment with city access",
-    "status": "rent", "type": "Apartment", "price": 450, "priceText": "",
-    "address": "210/15 Overton Road", "suburb": "Williams Landing", "state": "VIC", "postcode": "3027",
-    "beds": 2, "baths": 1, "cars": 1, "land": "",
-    "description": "Bright, secure apartment steps from the station and shopping centre. Open living opens to a balcony, with a stone kitchen and built-in robes. Perfect lock-and-leave.",
+    "status": "rent",
+    "type": "Apartment",
+    "price": 450,
+    "priceText": "",
+    "address": "210/15 Station Street",
+    "suburb": "Epping",
+    "state": "VIC",
+    "postcode": "3076",
+    "beds": 2,
+    "baths": 1,
+    "cars": 1,
+    "land": "",
+    "description": "Bright, secure apartment steps from the station and Pacific Epping. Open living opens to a balcony, with a stone kitchen and built-in robes. Perfect lock-and-leave.",
     "features": ["Secure entry", "Balcony", "Stone benchtops", "Built-in robes", "Walk to station"],
-    "agentName": "Priya Nair", "agentPhone": "0400 333 444", "agentEmail": "rentals@a1vision.com.au",
-    "images": [], "createdAt": 1718000040000
+    "agentName": "Priya Nair",
+    "agentPhone": "0400 333 444",
+    "agentEmail": "rentals@A1 Vision.example",
+    "images": [],
+    "createdAt": 1718000040000
   },
   {
     "id": "lst_seed6",
     "title": "Sold in 7 days — immaculate single-storey",
-    "status": "sold", "type": "House", "price": 712000, "priceText": "Sold $712,000",
-    "address": "22 Wattle Court", "suburb": "Altona Meadows", "state": "VIC", "postcode": "3028",
-    "beds": 4, "baths": 2, "cars": 2, "land": "468 m²",
+    "status": "sold",
+    "type": "House",
+    "price": 712000,
+    "priceText": "Sold $712,000",
+    "address": "22 Wattle Court",
+    "suburb": "Donnybrook",
+    "state": "VIC",
+    "postcode": "3064",
+    "beds": 4,
+    "baths": 2,
+    "cars": 2,
+    "land": "468 m²",
     "description": "A fantastic result for our vendors. Strong buyer interest and a smooth campaign delivered a sale in just one week. Thinking of selling nearby? Get in touch for a free appraisal.",
     "features": ["Sold in 7 days", "Multiple offers", "Free appraisal available"],
-    "agentName": "Sam Rao", "agentPhone": "0400 111 222", "agentEmail": "sam@a1vision.com.au",
-    "images": [], "createdAt": 1718000050000
+    "agentName": "Sam Rao",
+    "agentPhone": "0400 111 222",
+    "agentEmail": "sam@A1 Vision.example",
+    "images": [],
+    "createdAt": 1718000050000
   }
-];
-</script>
-<script>
-window.PROVISIONED_USERS = [
-  { email: "admin@a1vision.com.au", salt: "85006a2b3090e05aa3d009599ab52f3d", hash: "8fc8e5ba1273eb3149d289d5ac81ce3c6670ae83f9c5b62711f82eaf991d4043" }
-  // Add staff with the "Owner: set up staff accounts" tool, paste the line here,
-  // then remove the demo account above.
 ];
 </script>
 <script>
@@ -668,8 +722,8 @@ window.PROVISIONED_USERS = [
   "use strict";
 
   var KEY_LISTINGS = "npc.listings.v1";
-  var KEY_PW       = "npc.pw.v1";          // { email: {salt,hash} } — local password changes
-  var KEY_SESSION  = "npc.session.v1";     // sessionStorage: current signed-in email
+  var KEY_ADMIN    = "npc.admin.v1";       // { email, salt, hash }
+  var KEY_SESSION  = "npc.session.v1";     // sessionStorage flag
 
   /* ---------- tiny utils ---------- */
   function uid() {
@@ -696,68 +750,32 @@ window.PROVISIONED_USERS = [
     return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
   }
 
-  /* ---------- accounts / auth (provisioned model) ----------
-     Accounts are PROVISIONED by the owner: a list of
-     { email, salt, hash } lives in window.PROVISIONED_USERS
-     (defined in admin.html). There is no open self-signup —
-     only those emails can sign in, using the password the owner
-     set. After signing in, a staff member can change their own
-     password; that change is stored locally in THIS browser only
-     (KEY_PW) and overrides the provisioned password here.
-
-     LIMITATIONS (static site, no server):
-       - the provisioned list is readable in page source
-       - a local password change does not sync across devices and
-         cannot truly revoke the original password elsewhere
-     For real multi-user auth use the Supabase/Cloudflare Access
-     path in the README.                                            */
-  function norm(email) { return (email || "").trim().toLowerCase(); }
-  function provisioned() { return (global.PROVISIONED_USERS || []); }
-  function findProvisioned(email) {
-    var e = norm(email);
-    return provisioned().filter(function (u) { return norm(u.email) === e; })[0] || null;
-  }
-  function localOverride(email) {
-    var map = read(KEY_PW, {}); return map[norm(email)] || null;
-  }
-
+  /* ---------- admin / auth ---------- */
   var Auth = {
-    // is this email allowed to sign in at all?
-    isProvisioned: function (email) { return !!findProvisioned(email); },
-    currentUser: function () { return sessionStorage.getItem(KEY_SESSION) || null; },
-    isLoggedIn: function () { return !!sessionStorage.getItem(KEY_SESSION); },
+    isConfigured: function () { return !!read(KEY_ADMIN, null); },
+    getEmail: function () { var a = read(KEY_ADMIN, null); return a ? a.email : null; },
+    isLoggedIn: function () { return sessionStorage.getItem(KEY_SESSION) === "1"; },
+
+    setup: async function (email, password) {
+      var salt = randomSalt();
+      var h = await hash(salt, password);
+      write(KEY_ADMIN, { email: email.trim().toLowerCase(), salt: salt, hash: h });
+      sessionStorage.setItem(KEY_SESSION, "1");
+    },
 
     login: async function (email, password) {
-      var prov = findProvisioned(email);
-      if (!prov) return false;                 // only owner-provisioned emails allowed
-      var ov = localOverride(email);           // local password change wins in this browser
-      var cred = ov || prov;
-      var h = await hash(cred.salt, password);
-      if (h === cred.hash) { sessionStorage.setItem(KEY_SESSION, norm(email)); return true; }
+      var a = read(KEY_ADMIN, null);
+      if (!a) return false;
+      if (email.trim().toLowerCase() !== a.email) return false;
+      var h = await hash(a.salt, password);
+      if (h === a.hash) { sessionStorage.setItem(KEY_SESSION, "1"); return true; }
       return false;
     },
 
-    // staff changes their OWN password (must know current one)
-    changeOwnPassword: async function (currentPassword, newPassword) {
-      var email = this.currentUser();
-      if (!email) return { ok: false, msg: "Not signed in." };
-      var prov = findProvisioned(email);
-      var ov = localOverride(email);
-      var cred = ov || prov;
-      var hc = await hash(cred.salt, currentPassword);
-      if (hc !== cred.hash) return { ok: false, msg: "Current password is incorrect." };
-      if (!newPassword || newPassword.length < 8) return { ok: false, msg: "New password must be at least 8 characters." };
+    changeCredentials: async function (newEmail, newPassword) {
       var salt = randomSalt();
-      var hn = await hash(salt, newPassword);
-      var map = read(KEY_PW, {}); map[email] = { salt: salt, hash: hn }; write(KEY_PW, map);
-      return { ok: true };
-    },
-
-    // owner tool: turn an email+password into a provisioned entry to paste into code
-    makeCredential: async function (email, password) {
-      var salt = randomSalt();
-      var h = await hash(salt, password);
-      return { email: norm(email), salt: salt, hash: h };
+      var h = await hash(salt, newPassword);
+      write(KEY_ADMIN, { email: newEmail.trim().toLowerCase(), salt: salt, hash: h });
     },
 
     logout: function () { sessionStorage.removeItem(KEY_SESSION); }
@@ -914,6 +932,7 @@ window.PROVISIONED_USERS = [
 
   var $ = function (id) { return document.getElementById(id); };
   var authScreen = $("authScreen"), dashboard = $("dashboard");
+  var setupForm = $("setupForm"), loginForm = $("loginForm");
   var draftImages = [];
 
   function toast(msg) {
@@ -925,75 +944,66 @@ window.PROVISIONED_USERS = [
   function showAuth() {
     authScreen.style.display = "grid";
     dashboard.style.display = "none";
-    $("liEmail").focus();
+    if (A.isConfigured()) { setupForm.style.display = "none"; loginForm.style.display = "block"; $("liEmail").focus(); }
+    else { setupForm.style.display = "block"; loginForm.style.display = "none"; $("suEmail").focus(); }
   }
   function showDashboard() {
     authScreen.style.display = "none";
     dashboard.style.display = "block";
-    $("whoEmail").textContent = A.currentUser() || "";
-    $("acEmail").value = A.currentUser() || "";
-    var lbl = $("acEmailLabel"); if (lbl) lbl.textContent = A.currentUser() || "";
+    $("whoEmail").textContent = A.getEmail() || "";
+    $("acEmail").value = A.getEmail() || "";
     S.Listings.seedFromFileIfEmpty().then(renderList);
   }
   function route() { if (A.isLoggedIn()) showDashboard(); else showAuth(); }
 
-  // show the starter credentials hint only while the default demo account exists
-  (function demoHint() {
-    var hint = $("demoHint"); if (!hint) return;
-    var users = window.PROVISIONED_USERS || [];
-    var hasDemo = users.some(function (u) { return u.email === "admin@a1vision.com.au"; });
-    if (hasDemo) {
-      hint.innerHTML = 'Starter login: <b>admin@a1vision.com.au</b> / <b>a1vision123</b> — replace before publishing.';
-    }
-  })();
+  /* setup */
+  $("setupBtn").addEventListener("click", async function () {
+    var email = $("suEmail").value.trim();
+    var p1 = $("suPass").value, p2 = $("suPass2").value;
+    var err = $("setupErr"); err.textContent = "";
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = "Enter a valid email address."; return; }
+    if (p1.length < 8) { err.textContent = "Password must be at least 8 characters."; return; }
+    if (p1 !== p2) { err.textContent = "Passwords don't match."; return; }
+    await A.setup(email, p1);
+    toast("Account created");
+    route();
+  });
 
-  /* login (provisioned accounts only) */
+  /* login */
   $("loginBtn").addEventListener("click", doLogin);
   $("liPass").addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); });
   async function doLogin() {
     var err = $("loginErr"); err.textContent = "";
     var ok = await A.login($("liEmail").value, $("liPass").value);
-    if (ok) { route(); }
-    else { err.textContent = "Email or password is incorrect, or this account hasn't been set up by the owner."; }
+    if (ok) { route(); } else { err.textContent = "Email or password is incorrect."; }
   }
 
-  /* owner provisioning tool: generate a { email, salt, hash } line to paste into code */
-  var provToggle = $("provToggle"), provPanel = $("provPanel");
-  if (provToggle) {
-    provToggle.addEventListener("click", function (e) {
-      e.preventDefault();
-      provPanel.style.display = provPanel.style.display === "none" ? "block" : "none";
-    });
-  }
-  if ($("provGen")) {
-    $("provGen").addEventListener("click", async function () {
-      var email = $("provEmail").value.trim();
-      var pass = $("provPass").value;
-      var out = $("provOut");
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { out.value = "Enter a valid email first."; return; }
-      if (!pass || pass.length < 8) { out.value = "Password must be at least 8 characters."; return; }
-      var cred = await A.makeCredential(email, pass);
-      out.value = "  { email: \"" + cred.email + "\", salt: \"" + cred.salt + "\", hash: \"" + cred.hash + "\" },";
-      out.focus(); out.select();
-    });
-    $("provCopy").addEventListener("click", function () {
-      var out = $("provOut"); out.select();
-      try { navigator.clipboard.writeText(out.value); toast("Copied — paste into PROVISIONED_USERS"); }
-      catch (e) { toast("Select the text and copy it"); }
-    });
-  }
+  /* reset (clears local admin only) */
+  $("resetLink").addEventListener("click", function (e) {
+    e.preventDefault();
+    if (confirm("This clears the admin account stored on THIS device so you can set a new one. Your listings are not deleted. Continue?")) {
+      localStorage.removeItem("npc.admin.v1");
+      A.logout();
+      toast("Admin reset — set up a new account");
+      showAuth();
+    }
+  });
 
   $("logoutBtn").addEventListener("click", function () { A.logout(); showAuth(); });
 
-  /* change own password */
+  /* account update */
   $("acSave").addEventListener("click", async function () {
     var err = $("acErr"); err.textContent = "";
-    var cur = $("acCurrent").value, np = $("acPass").value, np2 = $("acPass2").value;
-    if (np !== np2) { err.textContent = "New passwords don't match."; return; }
-    var res = await A.changeOwnPassword(cur, np);
-    if (!res.ok) { err.textContent = res.msg; return; }
-    $("acCurrent").value = ""; $("acPass").value = ""; $("acPass2").value = "";
-    toast("Password changed on this device");
+    var email = $("acEmail").value.trim();
+    var pass = $("acPass").value;
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = "Enter a valid email."; return; }
+    if (pass && pass.length < 8) { err.textContent = "New password must be at least 8 characters."; return; }
+    var finalPass = pass || prompt("Confirm a password (min 8 chars) to re-save the account:");
+    if (!finalPass || finalPass.length < 8) { err.textContent = "Password required to update account."; return; }
+    await A.changeCredentials(email, finalPass);
+    $("acPass").value = "";
+    $("whoEmail").textContent = email;
+    toast("Account updated");
   });
 
   /* ============ LIST VIEW ============ */

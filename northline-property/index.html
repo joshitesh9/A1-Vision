@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Admin · A1 Vision</title>
-<meta name="robots" content="noindex" />
+<title>A1 Vision — Let's find a home to your dreams</title>
+<meta name="description" content="Buy, rent and sell with A1 Vision" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -376,285 +376,313 @@ textarea.input { min-height: 120px; resize: vertical; }
 </style>
 </head>
 <body>
-<div class="admin-shell">
 
-  <!-- ============ AUTH (login only — accounts are owner-provisioned) ============ -->
-  <section class="auth-screen" id="authScreen">
-    <div class="auth-card">
-      <div class="brand">
-        <span class="brand-mark">A1</span><span class="brand-name">A1 Vision<span>.</span></span>
+<header class="site-head">
+  <div class="wrap head-row">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">A1</span>
+      <span class="brand-name">A1 Vision<span>.</span></span>
+    </a>
+    <nav class="nav" id="nav">
+      <a href="#listings" data-filter="sale" class="is-active">Buy</a>
+      <a href="#listings" data-filter="rent">Rent</a>
+      <a href="#listings" data-filter="sold">Sold</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+      <a href="admin.html" class="nav-admin">Admin</a>
+    </nav>
+    <button class="menu-btn" id="menuBtn" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Melbourne's suburban corridor</p>
+        <h1>Find your next address with <em>A1.</em></h1>
+        <p class="lede">A boutique agency for buyers, renters and sellers across suburbs in Melbourne. Real local knowledge, no call-centre runaround.</p>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="n" id="statSale">0</div><div class="l">homes for sale</div></div>
+          <div class="hero-stat"><div class="n" id="statRent">0</div><div class="l">to rent</div></div>
+          <div class="hero-stat"><div class="n" id="statSold">0</div><div class="l">recently sold</div></div>
+        </div>
       </div>
-
-      <div id="loginForm">
-        <h1>Staff sign in</h1>
-        <p class="sub">Sign in with the email and password your administrator gave you.</p>
-        <div class="field-group">
-          <label for="liEmail">Email</label>
-          <input class="input" id="liEmail" type="email" autocomplete="username" placeholder="you@example.com" />
+      <div class="hero-art">
+        <div class="hero-art-card">
+          <div class="ha-price" id="haPrice">—</div>
+          <div class="ha-addr" id="haAddr">Latest listing</div>
+          <div class="specs" id="haSpecs"></div>
         </div>
-        <div class="field-group">
-          <label for="liPass">Password</label>
-          <input class="input" id="liPass" type="password" autocomplete="current-password" placeholder="Your password" />
-        </div>
-        <button class="btn btn-dark btn-block" id="loginBtn">Sign in</button>
-        <div class="error-msg" id="loginErr"></div>
-        <p class="hint" id="demoHint" style="text-align:center;margin-top:10px"></p>
+      </div>
+    </div>
 
-        <p class="hint" style="text-align:center;margin-top:16px">
-          <a href="#" id="provToggle" style="color:var(--clay-dark);font-weight:600">Owner: set up staff accounts</a>
-        </p>
-
-        <!-- OWNER PROVISIONING TOOL -->
-        <div id="provPanel" style="display:none">
-          <div class="note" style="margin-top:6px">
-            Generate a line for each staff member, then paste it into the
-            <b>PROVISIONED_USERS</b> list inside <b>admin.html</b> and commit. This keeps plain
-            passwords out of your code. Give each person their email + password directly.
-          </div>
-          <div class="field-group" style="margin-top:12px">
-            <label for="provEmail">Staff email</label>
-            <input class="input" id="provEmail" type="email" placeholder="jess@youragency.com" />
-          </div>
-          <div class="field-group">
-            <label for="provPass">Initial password (min 8 chars)</label>
-            <input class="input" id="provPass" type="text" placeholder="give them this password" />
-          </div>
-          <button class="btn btn-ghost btn-block" id="provGen">Generate account line</button>
-          <textarea class="input" id="provOut" readonly rows="2" style="margin-top:10px;font-family:monospace;font-size:12px" placeholder="// generated code appears here"></textarea>
-          <button class="btn btn-primary btn-block" id="provCopy" style="margin-top:8px">Copy</button>
+    <!-- SEARCH BAR -->
+    <div class="wrap">
+      <div class="searchbar" role="search">
+        <div class="field">
+          <label for="q">Suburb or keyword</label>
+          <input id="q" type="text" placeholder="e.g. Wollert, townhouse" />
         </div>
-
-        <div class="note" style="margin-top:16px">
-          <b>Heads up:</b> on a static GitHub Pages site this sign-in runs in the browser — it's a
-          basic gate, not real security, and password changes save only on the device used. For a
-          truly private admin with real accounts, see the README (Cloudflare Access / Supabase).
+        <div class="field">
+          <label for="fType">Type</label>
+          <select id="fType">
+            <option value="">Any type</option>
+            <option>House</option><option>Townhouse</option><option>Apartment</option><option>Land</option>
+          </select>
         </div>
+        <div class="field">
+          <label for="fBeds">Beds</label>
+          <select id="fBeds">
+            <option value="">Any</option><option value="1">1+</option><option value="2">2+</option>
+            <option value="3">3+</option><option value="4">4+</option><option value="5">5+</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fMax">Max price</label>
+          <select id="fMax">
+            <option value="">No max</option>
+            <option value="500000">$500k</option><option value="700000">$700k</option>
+            <option value="900000">$900k</option><option value="1200000">$1.2m</option>
+            <option value="2000000">$2m</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="searchBtn">Search</button>
       </div>
     </div>
   </section>
 
-  <!-- ============ DASHBOARD ============ -->
-  <div id="dashboard" style="display:none">
-    <header class="admin-top">
-      <div class="wrap head-row">
-        <a class="brand" href="admin.html">
-          <span class="brand-mark">A1</span><span class="brand-name">A1 Vision<span>.</span> admin</span>
-        </a>
-        <div class="at-actions">
-          <span class="who" id="whoEmail"></span>
-          <a class="btn btn-ghost" href="index.html" target="_blank">View site ↗</a>
-          <button class="btn btn-ghost" id="logoutBtn">Sign out</button>
+  <!-- LISTINGS -->
+  <section class="section" id="listings">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Current listings</p>
+          <h2 id="listTitle">Homes for sale</h2>
+          <p id="listCount"></p>
+        </div>
+        <div class="tabs" id="statusTabs">
+          <button data-status="sale" class="is-active">For sale</button>
+          <button data-status="rent">For rent</button>
+          <button data-status="sold">Sold</button>
         </div>
       </div>
-    </header>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
 
-    <main class="admin-main">
-      <div class="wrap">
-
-        <!-- list view -->
-        <div id="listView">
-          <div class="toolbar">
-            <h1>Listings</h1>
-            <div class="tb-actions">
-              <button class="btn btn-ghost" id="importBtn">Import JSON</button>
-              <button class="btn btn-ghost" id="exportBtn">Export listings.json</button>
-              <button class="btn btn-primary" id="newBtn">+ New listing</button>
-            </div>
-          </div>
-          <input type="file" id="importFile" accept="application/json" style="display:none" />
-          <div class="note" style="margin-bottom:20px">
-            <b>Publishing:</b> changes here are saved on this device. To make them appear for everyone on your live site,
-            click <b>Export listings.json</b> and commit the downloaded file to your repo at <code>data/listings.json</code>.
-          </div>
-          <div class="admin-list" id="adminList"></div>
-        </div>
-
-        <!-- editor view -->
-        <div id="editView" style="display:none">
-          <div class="toolbar">
-            <h1 id="editHeading">New listing</h1>
-            <button class="btn btn-ghost" id="backBtn">← Back to list</button>
-          </div>
-          <div class="editor">
-            <input type="hidden" id="fId" />
-            <div class="form-grid">
-              <div class="col-span field-group">
-                <label for="fTitle">Listing headline</label>
-                <input class="input" id="fTitle" placeholder="e.g. Light-filled family home with park frontage" />
-              </div>
-              <div class="field-group">
-                <label for="fStatus">Status</label>
-                <select class="input" id="fStatus">
-                  <option value="sale">For sale</option>
-                  <option value="rent">For rent</option>
-                  <option value="sold">Sold</option>
-                </select>
-              </div>
-              <div class="field-group">
-                <label for="fTypeSel">Property type</label>
-                <select class="input" id="fTypeSel">
-                  <option>House</option><option>Townhouse</option><option>Apartment</option><option>Land</option>
-                </select>
-              </div>
-
-              <div class="field-group">
-                <label for="fPrice">Price (number only)</label>
-                <input class="input" id="fPrice" type="number" placeholder="750000" />
-              </div>
-              <div class="field-group">
-                <label for="fPriceText">Price display text (optional)</label>
-                <input class="input" id="fPriceText" placeholder='e.g. "Contact agent" or "$720k–$760k"' />
-              </div>
-
-              <div class="col-span field-group">
-                <label for="fAddress">Street address</label>
-                <input class="input" id="fAddress" placeholder="11 Example Way" />
-              </div>
-              <div class="col-3">
-                <div class="field-group"><label for="fSuburb">Suburb</label><input class="input" id="fSuburb" placeholder="Wollert" /></div>
-                <div class="field-group"><label for="fState">State</label><input class="input" id="fState" value="VIC" /></div>
-                <div class="field-group"><label for="fPostcode">Postcode</label><input class="input" id="fPostcode" placeholder="3750" /></div>
-              </div>
-
-              <div class="col-4">
-                <div class="field-group"><label for="fBeds">Beds</label><input class="input" id="fBeds" type="number" min="0" placeholder="4" /></div>
-                <div class="field-group"><label for="fBaths">Baths</label><input class="input" id="fBaths" type="number" min="0" placeholder="2" /></div>
-                <div class="field-group"><label for="fCars">Car spaces</label><input class="input" id="fCars" type="number" min="0" placeholder="2" /></div>
-                <div class="field-group"><label for="fLand">Land size</label><input class="input" id="fLand" placeholder="512 m²" /></div>
-              </div>
-
-              <div class="col-span field-group">
-                <label for="fDesc">Description</label>
-                <textarea class="input" id="fDesc" placeholder="Describe the property..."></textarea>
-              </div>
-              <div class="col-span field-group">
-                <label for="fFeatures">Features (one per line)</label>
-                <textarea class="input" id="fFeatures" placeholder="Ducted heating&#10;Double garage&#10;Solar panels"></textarea>
-              </div>
-
-              <div class="col-3">
-                <div class="field-group"><label for="fAgentName">Agent name</label><input class="input" id="fAgentName" placeholder="Sam Rao" /></div>
-                <div class="field-group"><label for="fAgentPhone">Agent phone</label><input class="input" id="fAgentPhone" placeholder="0400 000 000" /></div>
-                <div class="field-group"><label for="fAgentEmail">Agent email</label><input class="input" id="fAgentEmail" placeholder="sam@a1vision.com.au" /></div>
-              </div>
-
-              <div class="col-span field-group">
-                <label>Photos</label>
-                <div class="dropzone" id="dropzone">
-                  <strong>Click to add photos</strong> or drag &amp; drop here<br />
-                  <span class="hint">Images are resized automatically to keep the site fast.</span>
-                  <input type="file" id="fImages" accept="image/*" multiple style="display:none" />
-                </div>
-                <div class="thumbs" id="thumbs"></div>
-              </div>
-            </div>
-
-            <div class="editor-actions">
-              <button class="btn btn-primary" id="saveBtn">Save listing</button>
-              <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- account: change own password -->
-        <div class="editor" style="margin-top:30px">
-          <h2>Your account</h2>
-          <p class="hint" style="margin-top:-8px;margin-bottom:16px">
-            Signed in as <b id="acEmailLabel"></b>. Change your password below. (On this static
-            setup the change is saved on this device only.)
-          </p>
-          <input type="hidden" id="acEmail" />
-          <div class="form-grid">
-            <div class="field-group col-span"><label for="acCurrent">Current password</label><input class="input" id="acCurrent" type="password" autocomplete="current-password" /></div>
-            <div class="field-group"><label for="acPass">New password</label><input class="input" id="acPass" type="password" autocomplete="new-password" placeholder="At least 8 characters" /></div>
-            <div class="field-group"><label for="acPass2">Confirm new password</label><input class="input" id="acPass2" type="password" autocomplete="new-password" /></div>
-          </div>
-          <div class="editor-actions"><button class="btn btn-dark" id="acSave">Change password</button></div>
-          <div class="error-msg" id="acErr"></div>
-        </div>
-
+  <!-- ABOUT -->
+  <section class="section" id="about">
+    <div class="wrap">
+      <div class="cta-strip">
+        <p class="eyebrow" style="color:rgba(255,255,255,.7)">About A1 Vision</p>
+        <h2>Local agents who actually live here.</h2>
+        <p>We're a small team focused on the growth suburbs north of Melbourne. We bring back the parts of real estate that went missing — straight answers, prompt callbacks, and advice based on what's really happening on your street.</p>
+        <a href="#contact" class="btn btn-primary">Talk to us</a>
       </div>
-    </main>
+    </div>
+  </section>
+</main>
+
+<!-- DETAIL MODAL -->
+<div class="modal-back" id="modalBack" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="modal-gallery">
+      <button class="modal-x" id="modalX" aria-label="Close">×</button>
+      <img id="mHero" alt="" />
+    </div>
+    <div class="modal-thumbs" id="mThumbs"></div>
+    <div class="modal-body">
+      <span class="tag" id="mTag">For Sale</span>
+      <h2 id="mTitle"></h2>
+      <div class="m-addr" id="mAddr"></div>
+      <div class="card-price" id="mPrice" style="font-size:26px"></div>
+      <div class="specs" id="mSpecs" style="border:0;padding-top:16px"></div>
+      <div class="modal-desc" id="mDesc"></div>
+      <ul class="feature-list" id="mFeatures"></ul>
+      <div class="agent-box" id="mAgent"></div>
+    </div>
   </div>
-
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- FOOTER -->
+<footer class="site-foot" id="contact">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="index.html" style="margin-bottom:12px">
+          <span class="brand-mark">A1</span><span class="brand-name">A1 Vision<span>.</span></span>
+        </a>
+        <p>Boutique real estate for Melbourne's suburban growth corridor. Sales, rentals and property management with a personal touch.</p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="tel:+61321654321">03 2165 4321</a></li>
+          <li><a href="mailto:hello@A1 Vision.example">hello@A1 Vision.example</a></li>
+          <li>244 Example Rd, Truganina VIC 3750</li>
+          <li>Mon–Fri 9:00–5:30</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Areas we cover</h4>
+        <ul>
+          <li>Tarneit &amp; Truganina</li>
+          <li>Williams Landing &amp; Hoppers Crossing</li>
+          <li>Altona Meadows &amp; Werribee</li>
+          <li>Craigieburn &amp; surrounds</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© <span id="yr"></span> A1 Vision. Demo site.</span>
+      <span><a href="admin.html">Admin sign in</a></span>
+    </div>
+  </div>
+</footer>
 <script>
 window.SEED_LISTINGS = [
   {
     "id": "lst_seed1",
     "title": "Light-filled family home with park frontage",
-    "status": "sale", "type": "House", "price": 765000, "priceText": "",
-    "address": "12 Saltbush Way", "suburb": "Tarneit", "state": "VIC", "postcode": "3029",
-    "beds": 4, "baths": 2, "cars": 2, "land": "448 m²",
-    "description": "A bright, well-planned home directly opposite parkland. Open living flows to an alfresco and low-maintenance yard, with a separate lounge and a dedicated study nook. Walk to schools, the town centre and bus routes.",
+    "status": "sale",
+    "type": "House",
+    "price": 765000,
+    "priceText": "",
+    "address": "12 Banksia Rise",
+    "suburb": "Wollert",
+    "state": "VIC",
+    "postcode": "3750",
+    "beds": 4,
+    "baths": 2,
+    "cars": 2,
+    "land": "448 m²",
+    "description": "A bright, well-planned home directly opposite parkland. Open living flows to an alfresco and low-maintenance yard, with a separate lounge and a dedicated study nook. Walk to schools, the town centre and bus routes.\n\nMoments to the Edgars Creek trail and a short drive to the freeway.",
     "features": ["Ducted heating & evaporative cooling", "Stone kitchen with walk-in pantry", "Double remote garage", "Solar panels", "Park frontage", "Walk to schools"],
-    "agentName": "Sam Rao", "agentPhone": "0400 111 222", "agentEmail": "sam@a1vision.com.au",
-    "images": [], "createdAt": 1718000000000
+    "agentName": "Sam Rao",
+    "agentPhone": "0400 111 222",
+    "agentEmail": "sam@A1 Vision.example",
+    "images": [],
+    "createdAt": 1718000000000
   },
   {
     "id": "lst_seed2",
-    "title": "Stylish townhouse moments from the station",
-    "status": "sale", "type": "Townhouse", "price": 545000, "priceText": "",
-    "address": "3/40 Leakes Road", "suburb": "Truganina", "state": "VIC", "postcode": "3029",
-    "beds": 3, "baths": 2, "cars": 1, "land": "210 m²",
-    "description": "Low-maintenance living with quality finishes throughout. Generous bedrooms upstairs, a sleek kitchen and a private courtyard. Ideal first home or investment, close to transport and shops.",
-    "features": ["European appliances", "Split-system heating & cooling", "Private courtyard", "Close to transport", "Single garage plus extra space"],
-    "agentName": "Priya Nair", "agentPhone": "0400 333 444", "agentEmail": "priya@a1vision.com.au",
-    "images": [], "createdAt": 1718000010000
+    "title": "Stylish townhouse moments from the train",
+    "status": "sale",
+    "type": "Townhouse",
+    "price": 545000,
+    "priceText": "",
+    "address": "3/40 Hardy Street",
+    "suburb": "Craigieburn",
+    "state": "VIC",
+    "postcode": "3064",
+    "beds": 3,
+    "baths": 2,
+    "cars": 1,
+    "land": "210 m²",
+    "description": "Low-maintenance living with quality finishes throughout. Generous bedrooms upstairs, a sleek kitchen and a private courtyard. Ideal first home or investment, walking distance to Craigieburn Station.",
+    "features": ["European appliances", "Split-system heating & cooling", "Private courtyard", "Walk to station", "Single garage plus extra space"],
+    "agentName": "Priya Nair",
+    "agentPhone": "0400 333 444",
+    "agentEmail": "priya@A1 Vision.example",
+    "images": [],
+    "createdAt": 1718000010000
   },
   {
     "id": "lst_seed3",
     "title": "Brand-new four-bedroom on a corner block",
-    "status": "sale", "type": "House", "price": 899000, "priceText": "",
-    "address": "5 Sunraysia Drive", "suburb": "Werribee", "state": "VIC", "postcode": "3030",
-    "beds": 4, "baths": 2, "cars": 2, "land": "512 m²",
+    "status": "sale",
+    "type": "House",
+    "price": 899000,
+    "priceText": "",
+    "address": "5 Taketa Way",
+    "suburb": "Kalkallo",
+    "state": "VIC",
+    "postcode": "3064",
+    "beds": 4,
+    "baths": 2,
+    "cars": 2,
+    "land": "512 m²",
     "description": "Modern family living with space to grow. Multiple living zones, a designer kitchen with butler's pantry, and a master suite with walk-in robe and ensuite. Quality build on a sought-after corner allotment.",
     "features": ["Butler's pantry", "Two living zones", "Master with WIR & ensuite", "Ducted heating", "Landscaped gardens", "Corner block"],
-    "agentName": "Sam Rao", "agentPhone": "0400 111 222", "agentEmail": "sam@a1vision.com.au",
-    "images": [], "createdAt": 1718000020000
+    "agentName": "Sam Rao",
+    "agentPhone": "0400 111 222",
+    "agentEmail": "sam@A1 Vision.example",
+    "images": [],
+    "createdAt": 1718000020000
   },
   {
     "id": "lst_seed4",
     "title": "Neat three-bedroom rental close to shops",
-    "status": "rent", "type": "House", "price": 520, "priceText": "",
-    "address": "8 Marigold Avenue", "suburb": "Hoppers Crossing", "state": "VIC", "postcode": "3029",
-    "beds": 3, "baths": 2, "cars": 2, "land": "400 m²",
+    "status": "rent",
+    "type": "House",
+    "price": 520,
+    "priceText": "",
+    "address": "8 Marigold Avenue",
+    "suburb": "Mickleham",
+    "state": "VIC",
+    "postcode": "3064",
+    "beds": 3,
+    "baths": 2,
+    "cars": 2,
+    "land": "400 m²",
     "description": "Comfortable family home available now. Open-plan living, a well-equipped kitchen and a secure backyard. Close to shops, schools and parks. Pets considered on application.",
     "features": ["Dishwasher", "Split-system cooling", "Secure yard", "Close to shops", "Available now"],
-    "agentName": "Priya Nair", "agentPhone": "0400 333 444", "agentEmail": "rentals@a1vision.com.au",
-    "images": [], "createdAt": 1718000030000
+    "agentName": "Priya Nair",
+    "agentPhone": "0400 333 444",
+    "agentEmail": "rentals@A1 Vision.example",
+    "images": [],
+    "createdAt": 1718000030000
   },
   {
     "id": "lst_seed5",
     "title": "Modern two-bed apartment with city access",
-    "status": "rent", "type": "Apartment", "price": 450, "priceText": "",
-    "address": "210/15 Overton Road", "suburb": "Williams Landing", "state": "VIC", "postcode": "3027",
-    "beds": 2, "baths": 1, "cars": 1, "land": "",
-    "description": "Bright, secure apartment steps from the station and shopping centre. Open living opens to a balcony, with a stone kitchen and built-in robes. Perfect lock-and-leave.",
+    "status": "rent",
+    "type": "Apartment",
+    "price": 450,
+    "priceText": "",
+    "address": "210/15 Station Street",
+    "suburb": "Epping",
+    "state": "VIC",
+    "postcode": "3076",
+    "beds": 2,
+    "baths": 1,
+    "cars": 1,
+    "land": "",
+    "description": "Bright, secure apartment steps from the station and Pacific Epping. Open living opens to a balcony, with a stone kitchen and built-in robes. Perfect lock-and-leave.",
     "features": ["Secure entry", "Balcony", "Stone benchtops", "Built-in robes", "Walk to station"],
-    "agentName": "Priya Nair", "agentPhone": "0400 333 444", "agentEmail": "rentals@a1vision.com.au",
-    "images": [], "createdAt": 1718000040000
+    "agentName": "Priya Nair",
+    "agentPhone": "0400 333 444",
+    "agentEmail": "rentals@A1 Vision.example",
+    "images": [],
+    "createdAt": 1718000040000
   },
   {
     "id": "lst_seed6",
     "title": "Sold in 7 days — immaculate single-storey",
-    "status": "sold", "type": "House", "price": 712000, "priceText": "Sold $712,000",
-    "address": "22 Wattle Court", "suburb": "Altona Meadows", "state": "VIC", "postcode": "3028",
-    "beds": 4, "baths": 2, "cars": 2, "land": "468 m²",
+    "status": "sold",
+    "type": "House",
+    "price": 712000,
+    "priceText": "Sold $712,000",
+    "address": "22 Wattle Court",
+    "suburb": "Donnybrook",
+    "state": "VIC",
+    "postcode": "3064",
+    "beds": 4,
+    "baths": 2,
+    "cars": 2,
+    "land": "468 m²",
     "description": "A fantastic result for our vendors. Strong buyer interest and a smooth campaign delivered a sale in just one week. Thinking of selling nearby? Get in touch for a free appraisal.",
     "features": ["Sold in 7 days", "Multiple offers", "Free appraisal available"],
-    "agentName": "Sam Rao", "agentPhone": "0400 111 222", "agentEmail": "sam@a1vision.com.au",
-    "images": [], "createdAt": 1718000050000
+    "agentName": "Sam Rao",
+    "agentPhone": "0400 111 222",
+    "agentEmail": "sam@A1 Vision.example",
+    "images": [],
+    "createdAt": 1718000050000
   }
-];
-</script>
-<script>
-window.PROVISIONED_USERS = [
-  { email: "admin@a1vision.com.au", salt: "85006a2b3090e05aa3d009599ab52f3d", hash: "8fc8e5ba1273eb3149d289d5ac81ce3c6670ae83f9c5b62711f82eaf991d4043" }
-  // Add staff with the "Owner: set up staff accounts" tool, paste the line here,
-  // then remove the demo account above.
 ];
 </script>
 <script>
@@ -668,8 +696,8 @@ window.PROVISIONED_USERS = [
   "use strict";
 
   var KEY_LISTINGS = "npc.listings.v1";
-  var KEY_PW       = "npc.pw.v1";          // { email: {salt,hash} } — local password changes
-  var KEY_SESSION  = "npc.session.v1";     // sessionStorage: current signed-in email
+  var KEY_ADMIN    = "npc.admin.v1";       // { email, salt, hash }
+  var KEY_SESSION  = "npc.session.v1";     // sessionStorage flag
 
   /* ---------- tiny utils ---------- */
   function uid() {
@@ -696,68 +724,32 @@ window.PROVISIONED_USERS = [
     return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
   }
 
-  /* ---------- accounts / auth (provisioned model) ----------
-     Accounts are PROVISIONED by the owner: a list of
-     { email, salt, hash } lives in window.PROVISIONED_USERS
-     (defined in admin.html). There is no open self-signup —
-     only those emails can sign in, using the password the owner
-     set. After signing in, a staff member can change their own
-     password; that change is stored locally in THIS browser only
-     (KEY_PW) and overrides the provisioned password here.
-
-     LIMITATIONS (static site, no server):
-       - the provisioned list is readable in page source
-       - a local password change does not sync across devices and
-         cannot truly revoke the original password elsewhere
-     For real multi-user auth use the Supabase/Cloudflare Access
-     path in the README.                                            */
-  function norm(email) { return (email || "").trim().toLowerCase(); }
-  function provisioned() { return (global.PROVISIONED_USERS || []); }
-  function findProvisioned(email) {
-    var e = norm(email);
-    return provisioned().filter(function (u) { return norm(u.email) === e; })[0] || null;
-  }
-  function localOverride(email) {
-    var map = read(KEY_PW, {}); return map[norm(email)] || null;
-  }
-
+  /* ---------- admin / auth ---------- */
   var Auth = {
-    // is this email allowed to sign in at all?
-    isProvisioned: function (email) { return !!findProvisioned(email); },
-    currentUser: function () { return sessionStorage.getItem(KEY_SESSION) || null; },
-    isLoggedIn: function () { return !!sessionStorage.getItem(KEY_SESSION); },
+    isConfigured: function () { return !!read(KEY_ADMIN, null); },
+    getEmail: function () { var a = read(KEY_ADMIN, null); return a ? a.email : null; },
+    isLoggedIn: function () { return sessionStorage.getItem(KEY_SESSION) === "1"; },
+
+    setup: async function (email, password) {
+      var salt = randomSalt();
+      var h = await hash(salt, password);
+      write(KEY_ADMIN, { email: email.trim().toLowerCase(), salt: salt, hash: h });
+      sessionStorage.setItem(KEY_SESSION, "1");
+    },
 
     login: async function (email, password) {
-      var prov = findProvisioned(email);
-      if (!prov) return false;                 // only owner-provisioned emails allowed
-      var ov = localOverride(email);           // local password change wins in this browser
-      var cred = ov || prov;
-      var h = await hash(cred.salt, password);
-      if (h === cred.hash) { sessionStorage.setItem(KEY_SESSION, norm(email)); return true; }
+      var a = read(KEY_ADMIN, null);
+      if (!a) return false;
+      if (email.trim().toLowerCase() !== a.email) return false;
+      var h = await hash(a.salt, password);
+      if (h === a.hash) { sessionStorage.setItem(KEY_SESSION, "1"); return true; }
       return false;
     },
 
-    // staff changes their OWN password (must know current one)
-    changeOwnPassword: async function (currentPassword, newPassword) {
-      var email = this.currentUser();
-      if (!email) return { ok: false, msg: "Not signed in." };
-      var prov = findProvisioned(email);
-      var ov = localOverride(email);
-      var cred = ov || prov;
-      var hc = await hash(cred.salt, currentPassword);
-      if (hc !== cred.hash) return { ok: false, msg: "Current password is incorrect." };
-      if (!newPassword || newPassword.length < 8) return { ok: false, msg: "New password must be at least 8 characters." };
+    changeCredentials: async function (newEmail, newPassword) {
       var salt = randomSalt();
-      var hn = await hash(salt, newPassword);
-      var map = read(KEY_PW, {}); map[email] = { salt: salt, hash: hn }; write(KEY_PW, map);
-      return { ok: true };
-    },
-
-    // owner tool: turn an email+password into a provisioned entry to paste into code
-    makeCredential: async function (email, password) {
-      var salt = randomSalt();
-      var h = await hash(salt, password);
-      return { email: norm(email), salt: salt, hash: h };
+      var h = await hash(salt, newPassword);
+      write(KEY_ADMIN, { email: newEmail.trim().toLowerCase(), salt: salt, hash: h });
     },
 
     logout: function () { sessionStorage.removeItem(KEY_SESSION); }
@@ -906,269 +898,203 @@ window.PROVISIONED_USERS = [
 
 </script>
 <script>
-/* admin.js — admin behaviour */
+/* public.js — homepage behaviour */
 (function () {
   "use strict";
   var S = window.Store;
-  var A = S.Auth;
+  var ALL = [];
+  var state = { status: "sale", q: "", type: "", beds: "", max: "" };
 
-  var $ = function (id) { return document.getElementById(id); };
-  var authScreen = $("authScreen"), dashboard = $("dashboard");
-  var draftImages = [];
+  var grid = document.getElementById("grid");
+  var listTitle = document.getElementById("listTitle");
+  var listCount = document.getElementById("listCount");
 
-  function toast(msg) {
-    var t = $("toast"); t.textContent = msg; t.classList.add("show");
-    clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove("show"); }, 2200);
+  document.getElementById("yr").textContent = new Date().getFullYear();
+
+  /* ---- spec chips ---- */
+  function specRow(l, includeArea) {
+    var bits = [];
+    if (l.beds)  bits.push('<span class="spec">' + S.ICONS.bed  + (l.beds) + '</span>');
+    if (l.baths) bits.push('<span class="spec">' + S.ICONS.bath + (l.baths) + '</span>');
+    if (l.cars)  bits.push('<span class="spec">' + S.ICONS.car  + (l.cars) + '</span>');
+    if (includeArea && l.land) bits.push('<span class="spec area">' + S.ICONS.area + S.escapeHtml(l.land) + '</span>');
+    return bits.join("");
   }
 
-  /* ============ AUTH ROUTING ============ */
-  function showAuth() {
-    authScreen.style.display = "grid";
-    dashboard.style.display = "none";
-    $("liEmail").focus();
+  /* ---- card ---- */
+  function cardHtml(l) {
+    var statusClass = l.status === "rent" ? "rent" : l.status === "sold" ? "sold" : "";
+    return '' +
+      '<article class="card" tabindex="0" data-id="' + l.id + '">' +
+        '<div class="card-media">' +
+          '<span class="tag ' + statusClass + '">' + S.statusLabel(l.status) + '</span>' +
+          '<img loading="lazy" src="' + S.firstImage(l) + '" alt="' + S.escapeHtml(l.title) + '">' +
+        '</div>' +
+        '<div class="card-body">' +
+          '<div class="card-price">' + S.escapeHtml(S.priceDisplay(l)) + '</div>' +
+          '<div class="card-addr">' + S.escapeHtml(l.title || l.address || "") + '</div>' +
+          '<div class="card-sub">' + S.escapeHtml([l.address, l.suburb].filter(Boolean).join(", ")) + '</div>' +
+          '<div class="specs">' + specRow(l, true) + '</div>' +
+        '</div>' +
+      '</article>';
   }
-  function showDashboard() {
-    authScreen.style.display = "none";
-    dashboard.style.display = "block";
-    $("whoEmail").textContent = A.currentUser() || "";
-    $("acEmail").value = A.currentUser() || "";
-    var lbl = $("acEmailLabel"); if (lbl) lbl.textContent = A.currentUser() || "";
-    S.Listings.seedFromFileIfEmpty().then(renderList);
-  }
-  function route() { if (A.isLoggedIn()) showDashboard(); else showAuth(); }
 
-  // show the starter credentials hint only while the default demo account exists
-  (function demoHint() {
-    var hint = $("demoHint"); if (!hint) return;
-    var users = window.PROVISIONED_USERS || [];
-    var hasDemo = users.some(function (u) { return u.email === "admin@a1vision.com.au"; });
-    if (hasDemo) {
-      hint.innerHTML = 'Starter login: <b>admin@a1vision.com.au</b> / <b>a1vision123</b> — replace before publishing.';
+  /* ---- filtering ---- */
+  function matches(l) {
+    if (l.status !== state.status) return false;
+    if (state.type && l.type !== state.type) return false;
+    if (state.beds && Number(l.beds || 0) < Number(state.beds)) return false;
+    if (state.max && l.price && Number(l.price) > Number(state.max)) return false;
+    if (state.q) {
+      var hay = [l.title, l.address, l.suburb, l.type, l.description].join(" ").toLowerCase();
+      if (hay.indexOf(state.q.toLowerCase()) === -1) return false;
     }
-  })();
-
-  /* login (provisioned accounts only) */
-  $("loginBtn").addEventListener("click", doLogin);
-  $("liPass").addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); });
-  async function doLogin() {
-    var err = $("loginErr"); err.textContent = "";
-    var ok = await A.login($("liEmail").value, $("liPass").value);
-    if (ok) { route(); }
-    else { err.textContent = "Email or password is incorrect, or this account hasn't been set up by the owner."; }
+    return true;
   }
 
-  /* owner provisioning tool: generate a { email, salt, hash } line to paste into code */
-  var provToggle = $("provToggle"), provPanel = $("provPanel");
-  if (provToggle) {
-    provToggle.addEventListener("click", function (e) {
-      e.preventDefault();
-      provPanel.style.display = provPanel.style.display === "none" ? "block" : "none";
-    });
-  }
-  if ($("provGen")) {
-    $("provGen").addEventListener("click", async function () {
-      var email = $("provEmail").value.trim();
-      var pass = $("provPass").value;
-      var out = $("provOut");
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { out.value = "Enter a valid email first."; return; }
-      if (!pass || pass.length < 8) { out.value = "Password must be at least 8 characters."; return; }
-      var cred = await A.makeCredential(email, pass);
-      out.value = "  { email: \"" + cred.email + "\", salt: \"" + cred.salt + "\", hash: \"" + cred.hash + "\" },";
-      out.focus(); out.select();
-    });
-    $("provCopy").addEventListener("click", function () {
-      var out = $("provOut"); out.select();
-      try { navigator.clipboard.writeText(out.value); toast("Copied — paste into PROVISIONED_USERS"); }
-      catch (e) { toast("Select the text and copy it"); }
-    });
-  }
-
-  $("logoutBtn").addEventListener("click", function () { A.logout(); showAuth(); });
-
-  /* change own password */
-  $("acSave").addEventListener("click", async function () {
-    var err = $("acErr"); err.textContent = "";
-    var cur = $("acCurrent").value, np = $("acPass").value, np2 = $("acPass2").value;
-    if (np !== np2) { err.textContent = "New passwords don't match."; return; }
-    var res = await A.changeOwnPassword(cur, np);
-    if (!res.ok) { err.textContent = res.msg; return; }
-    $("acCurrent").value = ""; $("acPass").value = ""; $("acPass2").value = "";
-    toast("Password changed on this device");
-  });
-
-  /* ============ LIST VIEW ============ */
-  var listView = $("listView"), editView = $("editView");
-  function renderList() {
-    var list = S.Listings.all() || [];
-    var box = $("adminList");
-    if (!list.length) {
-      box.innerHTML = '<div class="empty"><strong>No listings yet</strong>Click “+ New listing” to add your first property.</div>';
+  function render() {
+    var titleMap = { sale: "Homes for sale", rent: "Homes for rent", sold: "Recently sold" };
+    listTitle.textContent = titleMap[state.status];
+    var rows = ALL.filter(matches);
+    if (!rows.length) {
+      grid.innerHTML = '<div class="empty"><strong>No matching listings yet</strong>' +
+        'Try clearing the filters, or check back soon — new properties are added regularly.</div>';
+      listCount.textContent = "";
       return;
     }
-    box.innerHTML = list.map(function (l) {
-      var sc = l.status === "rent" ? "rent" : l.status === "sold" ? "sold" : "";
-      return '' +
-        '<div class="row">' +
-          '<img class="row-thumb" src="' + S.firstImage(l) + '" alt="">' +
-          '<div class="row-main">' +
-            '<div class="r-title">' + S.escapeHtml(l.title || l.address || "Untitled") +
-              '<span class="row-badge ' + sc + '">' + S.statusLabel(l.status) + '</span></div>' +
-            '<div class="r-sub">' + S.escapeHtml([l.address, l.suburb].filter(Boolean).join(", ")) +
-              ' · ' + S.escapeHtml(S.priceDisplay(l)) + '</div>' +
-          '</div>' +
-          '<div class="row-actions">' +
-            '<button class="icon-btn" data-edit="' + l.id + '">Edit</button>' +
-            '<button class="icon-btn danger" data-del="' + l.id + '">Delete</button>' +
-          '</div>' +
-        '</div>';
+    listCount.textContent = rows.length + (rows.length === 1 ? " property" : " properties");
+    grid.innerHTML = rows.map(cardHtml).join("");
+  }
+
+  /* ---- hero featured ---- */
+  function fillHero() {
+    document.getElementById("statSale").textContent = ALL.filter(function (l) { return l.status === "sale"; }).length;
+    document.getElementById("statRent").textContent = ALL.filter(function (l) { return l.status === "rent"; }).length;
+    document.getElementById("statSold").textContent = ALL.filter(function (l) { return l.status === "sold"; }).length;
+    var feat = ALL.filter(function (l) { return l.status === "sale"; })[0] || ALL[0];
+    if (!feat) return;
+    document.getElementById("haPrice").textContent = S.priceDisplay(feat);
+    document.getElementById("haAddr").textContent = [feat.address, feat.suburb].filter(Boolean).join(", ") || feat.title;
+    document.getElementById("haSpecs").innerHTML = specRow(feat, true);
+  }
+
+  /* ---- detail modal ---- */
+  var modalBack = document.getElementById("modalBack");
+  function openDetail(id) {
+    var l = ALL.filter(function (x) { return x.id === id; })[0];
+    if (!l) return;
+    var imgs = (l.images && l.images.length) ? l.images : [S.firstImage(l)];
+    var hero = document.getElementById("mHero");
+    hero.src = imgs[0]; hero.alt = l.title || "";
+    var tag = document.getElementById("mTag");
+    tag.className = "tag " + (l.status === "rent" ? "rent" : l.status === "sold" ? "sold" : "");
+    tag.textContent = S.statusLabel(l.status);
+    document.getElementById("mTitle").textContent = l.title || l.address || "";
+    document.getElementById("mAddr").textContent = [l.address, l.suburb, l.state, l.postcode].filter(Boolean).join(", ");
+    document.getElementById("mPrice").textContent = S.priceDisplay(l);
+    document.getElementById("mSpecs").innerHTML = specRow(l, true);
+    document.getElementById("mDesc").textContent = l.description || "";
+
+    var feats = document.getElementById("mFeatures");
+    feats.innerHTML = (l.features || []).filter(Boolean)
+      .map(function (f) { return "<li>" + S.escapeHtml(f) + "</li>"; }).join("");
+
+    var thumbs = document.getElementById("mThumbs");
+    thumbs.innerHTML = imgs.map(function (src, i) {
+      return '<img src="' + src + '" class="' + (i === 0 ? "is-active" : "") + '" data-src="' + src + '" alt="">';
     }).join("");
-  }
+    thumbs.style.display = imgs.length > 1 ? "flex" : "none";
+    thumbs.querySelectorAll("img").forEach(function (t) {
+      t.addEventListener("click", function () {
+        hero.src = t.getAttribute("data-src");
+        thumbs.querySelectorAll("img").forEach(function (x) { x.classList.remove("is-active"); });
+        t.classList.add("is-active");
+      });
+    });
 
-  $("adminList").addEventListener("click", function (e) {
-    var ed = e.target.getAttribute("data-edit");
-    var dl = e.target.getAttribute("data-del");
-    if (ed) openEditor(ed);
-    if (dl) {
-      var l = S.Listings.get(dl);
-      if (confirm('Delete "' + (l ? (l.title || l.address) : "this listing") + '"? This cannot be undone.')) {
-        S.Listings.remove(dl); renderList(); toast("Listing deleted");
-      }
+    var name = l.agentName || "A1 Vision";
+    var phone = l.agentPhone || "03 9000 0000";
+    var email = l.agentEmail || "hello@A1 Vision.example";
+    document.getElementById("mAgent").innerHTML =
+      '<div><div class="a-name">' + S.escapeHtml(name) + '</div>' +
+      '<div class="a-meta">' + S.escapeHtml(phone) + ' · ' + S.escapeHtml(email) + '</div></div>' +
+      '<div class="agent-cta">' +
+        '<a class="btn btn-dark" href="tel:' + S.escapeHtml(phone.replace(/\s/g, "")) + '">Call</a>' +
+        '<a class="btn btn-primary" href="mailto:' + S.escapeHtml(email) +
+          '?subject=' + encodeURIComponent("Enquiry: " + (l.title || l.address || "listing")) + '">Email enquiry</a>' +
+      '</div>';
+
+    modalBack.classList.add("open");
+    modalBack.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+  function closeDetail() {
+    modalBack.classList.remove("open");
+    modalBack.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+  document.getElementById("modalX").addEventListener("click", closeDetail);
+  modalBack.addEventListener("click", function (e) { if (e.target === modalBack) closeDetail(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDetail(); });
+
+  grid.addEventListener("click", function (e) {
+    var card = e.target.closest(".card"); if (card) openDetail(card.getAttribute("data-id"));
+  });
+  grid.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") {
+      var card = e.target.closest(".card");
+      if (card) { e.preventDefault(); openDetail(card.getAttribute("data-id")); }
     }
   });
 
-  $("newBtn").addEventListener("click", function () { openEditor(null); });
-  $("backBtn").addEventListener("click", showList);
-  $("cancelBtn").addEventListener("click", showList);
+  /* ---- controls ---- */
+  var tabs = document.getElementById("statusTabs");
+  tabs.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    state.status = b.getAttribute("data-status");
+    tabs.querySelectorAll("button").forEach(function (x) { x.classList.toggle("is-active", x === b); });
+    syncNav();
+    render();
+  });
 
-  function showList() { editView.style.display = "none"; listView.style.display = "block"; renderList(); }
-  function showEdit() { listView.style.display = "none"; editView.style.display = "block"; window.scrollTo(0, 0); }
-
-  /* ============ EDITOR ============ */
-  function openEditor(id) {
-    var l = id ? S.Listings.get(id) : null;
-    $("editHeading").textContent = l ? "Edit listing" : "New listing";
-    $("fId").value = l ? l.id : "";
-    $("fTitle").value = l ? (l.title || "") : "";
-    $("fStatus").value = l ? (l.status || "sale") : "sale";
-    $("fTypeSel").value = l ? (l.type || "House") : "House";
-    $("fPrice").value = l && l.price != null ? l.price : "";
-    $("fPriceText").value = l ? (l.priceText || "") : "";
-    $("fAddress").value = l ? (l.address || "") : "";
-    $("fSuburb").value = l ? (l.suburb || "") : "";
-    $("fState").value = l ? (l.state || "VIC") : "VIC";
-    $("fPostcode").value = l ? (l.postcode || "") : "";
-    $("fBeds").value = l ? (l.beds || "") : "";
-    $("fBaths").value = l ? (l.baths || "") : "";
-    $("fCars").value = l ? (l.cars || "") : "";
-    $("fLand").value = l ? (l.land || "") : "";
-    $("fDesc").value = l ? (l.description || "") : "";
-    $("fFeatures").value = l && l.features ? l.features.join("\n") : "";
-    $("fAgentName").value = l ? (l.agentName || "") : "";
-    $("fAgentPhone").value = l ? (l.agentPhone || "") : "";
-    $("fAgentEmail").value = l ? (l.agentEmail || "") : "";
-    draftImages = l && l.images ? l.images.slice() : [];
-    renderThumbs();
-    showEdit();
+  function syncNav() {
+    document.querySelectorAll("#nav a[data-filter]").forEach(function (a) {
+      a.classList.toggle("is-active", a.getAttribute("data-filter") === state.status);
+    });
   }
+  document.querySelectorAll("#nav a[data-filter]").forEach(function (a) {
+    a.addEventListener("click", function () {
+      state.status = a.getAttribute("data-filter");
+      tabs.querySelectorAll("button").forEach(function (x) {
+        x.classList.toggle("is-active", x.getAttribute("data-status") === state.status);
+      });
+      syncNav();
+      render();
+      document.getElementById("nav").classList.remove("open");
+    });
+  });
 
-  function renderThumbs() {
-    $("thumbs").innerHTML = draftImages.map(function (src, i) {
-      return '<div class="thumb"><img src="' + src + '" alt=""><button class="del" data-i="' + i + '" title="Remove">×</button></div>';
-    }).join("");
+  function applySearch() {
+    state.q = document.getElementById("q").value.trim();
+    state.type = document.getElementById("fType").value;
+    state.beds = document.getElementById("fBeds").value;
+    state.max = document.getElementById("fMax").value;
+    render();
+    document.getElementById("listings").scrollIntoView({ behavior: "smooth" });
   }
-  $("thumbs").addEventListener("click", function (e) {
-    var i = e.target.getAttribute("data-i");
-    if (i !== null) { draftImages.splice(Number(i), 1); renderThumbs(); }
+  document.getElementById("searchBtn").addEventListener("click", applySearch);
+  document.getElementById("q").addEventListener("keydown", function (e) { if (e.key === "Enter") applySearch(); });
+
+  document.getElementById("menuBtn").addEventListener("click", function () {
+    document.getElementById("nav").classList.toggle("open");
   });
 
-  /* image upload + drag/drop */
-  var dz = $("dropzone"), fileInput = $("fImages");
-  dz.addEventListener("click", function () { fileInput.click(); });
-  fileInput.addEventListener("change", function () { ingest(fileInput.files); fileInput.value = ""; });
-  ["dragover", "dragenter"].forEach(function (ev) {
-    dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.add("drag"); });
+  /* ---- boot ---- */
+  S.Listings.loadForPublic().then(function (list) {
+    ALL = list || [];
+    fillHero();
+    render();
   });
-  ["dragleave", "drop"].forEach(function (ev) {
-    dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.remove("drag"); });
-  });
-  dz.addEventListener("drop", function (e) { if (e.dataTransfer && e.dataTransfer.files) ingest(e.dataTransfer.files); });
-
-  async function ingest(files) {
-    var arr = Array.prototype.slice.call(files);
-    for (var i = 0; i < arr.length; i++) {
-      try { var url = await S.fileToResizedDataURL(arr[i]); draftImages.push(url); renderThumbs(); }
-      catch (e) { toast("Skipped a file that isn't an image"); }
-    }
-  }
-
-  /* save */
-  $("saveBtn").addEventListener("click", function () {
-    var item = {
-      id: $("fId").value || "",
-      title: $("fTitle").value.trim(),
-      status: $("fStatus").value,
-      type: $("fTypeSel").value,
-      price: $("fPrice").value === "" ? null : Number($("fPrice").value),
-      priceText: $("fPriceText").value.trim(),
-      address: $("fAddress").value.trim(),
-      suburb: $("fSuburb").value.trim(),
-      state: $("fState").value.trim(),
-      postcode: $("fPostcode").value.trim(),
-      beds: $("fBeds").value === "" ? null : Number($("fBeds").value),
-      baths: $("fBaths").value === "" ? null : Number($("fBaths").value),
-      cars: $("fCars").value === "" ? null : Number($("fCars").value),
-      land: $("fLand").value.trim(),
-      description: $("fDesc").value.trim(),
-      features: $("fFeatures").value.split("\n").map(function (s) { return s.trim(); }).filter(Boolean),
-      agentName: $("fAgentName").value.trim(),
-      agentPhone: $("fAgentPhone").value.trim(),
-      agentEmail: $("fAgentEmail").value.trim(),
-      images: draftImages.slice()
-    };
-    if (!item.title && !item.address) { toast("Add a headline or address first"); return; }
-    var existing = $("fId").value ? S.Listings.get($("fId").value) : null;
-    if (existing) item.createdAt = existing.createdAt;
-    try {
-      S.Listings.upsert(item);
-      toast("Listing saved");
-      showList();
-    } catch (e) {
-      // localStorage quota is the usual culprit with many large images
-      alert("Couldn't save — you may have hit the browser storage limit. Try fewer/smaller images, or move to the Supabase setup in the README for unlimited storage.");
-    }
-  });
-
-  /* ============ IMPORT / EXPORT ============ */
-  $("exportBtn").addEventListener("click", function () {
-    var data = JSON.stringify(S.Listings.all() || [], null, 2);
-    var blob = new Blob([data], { type: "application/json" });
-    var a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "listings.json";
-    a.click();
-    URL.revokeObjectURL(a.href);
-    toast("Exported — commit this to data/listings.json");
-  });
-
-  $("importBtn").addEventListener("click", function () { $("importFile").click(); });
-  $("importFile").addEventListener("change", function () {
-    var f = $("importFile").files[0]; if (!f) return;
-    var r = new FileReader();
-    r.onload = function () {
-      try {
-        var data = JSON.parse(r.result);
-        if (!Array.isArray(data)) throw new Error("not an array");
-        if (confirm("Replace your current listings with " + data.length + " imported listing(s)?")) {
-          S.Listings.save(data); renderList(); toast("Imported " + data.length + " listing(s)");
-        }
-      } catch (e) { alert("That file isn't a valid listings.json export."); }
-      $("importFile").value = "";
-    };
-    r.readAsText(f);
-  });
-
-  /* boot */
-  route();
 })();
 
 </script>
