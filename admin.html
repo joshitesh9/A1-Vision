@@ -1,198 +1,140 @@
-/* public.js — homepage behaviour */
-(function () {
-  "use strict";
-  var S = window.Store;
-  var ALL = [];
-  var state = { status: "sale", q: "", type: "", beds: "", max: "" };
-
-  var grid = document.getElementById("grid");
-  var listTitle = document.getElementById("listTitle");
-  var listCount = document.getElementById("listCount");
-
-  document.getElementById("yr").textContent = new Date().getFullYear();
-
-  /* ---- spec chips ---- */
-  function specRow(l, includeArea) {
-    var bits = [];
-    if (l.beds)  bits.push('<span class="spec">' + S.ICONS.bed  + (l.beds) + '</span>');
-    if (l.baths) bits.push('<span class="spec">' + S.ICONS.bath + (l.baths) + '</span>');
-    if (l.cars)  bits.push('<span class="spec">' + S.ICONS.car  + (l.cars) + '</span>');
-    if (includeArea && l.land) bits.push('<span class="spec area">' + S.ICONS.area + S.escapeHtml(l.land) + '</span>');
-    return bits.join("");
+[
+  {
+    "id": "lst_seed1",
+    "title": "Light-filled family home with park frontage",
+    "status": "sale",
+    "type": "House",
+    "price": 765000,
+    "priceText": "",
+    "address": "12 Banksia Rise",
+    "suburb": "Wollert",
+    "state": "VIC",
+    "postcode": "3750",
+    "beds": 4,
+    "baths": 2,
+    "cars": 2,
+    "land": "448 m²",
+    "description": "A bright, well-planned home directly opposite parkland. Open living flows to an alfresco and low-maintenance yard, with a separate lounge and a dedicated study nook. Walk to schools, the town centre and bus routes.\n\nMoments to the Edgars Creek trail and a short drive to the freeway.",
+    "features": ["Ducted heating & evaporative cooling", "Stone kitchen with walk-in pantry", "Double remote garage", "Solar panels", "Park frontage", "Walk to schools"],
+    "agentName": "Sam Rao",
+    "agentPhone": "0400 111 222",
+    "agentEmail": "sam@northline.example",
+    "images": [],
+    "createdAt": 1718000000000
+  },
+  {
+    "id": "lst_seed2",
+    "title": "Stylish townhouse moments from the train",
+    "status": "sale",
+    "type": "Townhouse",
+    "price": 545000,
+    "priceText": "",
+    "address": "3/40 Hardy Street",
+    "suburb": "Craigieburn",
+    "state": "VIC",
+    "postcode": "3064",
+    "beds": 3,
+    "baths": 2,
+    "cars": 1,
+    "land": "210 m²",
+    "description": "Low-maintenance living with quality finishes throughout. Generous bedrooms upstairs, a sleek kitchen and a private courtyard. Ideal first home or investment, walking distance to Craigieburn Station.",
+    "features": ["European appliances", "Split-system heating & cooling", "Private courtyard", "Walk to station", "Single garage plus extra space"],
+    "agentName": "Priya Nair",
+    "agentPhone": "0400 333 444",
+    "agentEmail": "priya@northline.example",
+    "images": [],
+    "createdAt": 1718000010000
+  },
+  {
+    "id": "lst_seed3",
+    "title": "Brand-new four-bedroom on a corner block",
+    "status": "sale",
+    "type": "House",
+    "price": 899000,
+    "priceText": "",
+    "address": "5 Taketa Way",
+    "suburb": "Kalkallo",
+    "state": "VIC",
+    "postcode": "3064",
+    "beds": 4,
+    "baths": 2,
+    "cars": 2,
+    "land": "512 m²",
+    "description": "Modern family living with space to grow. Multiple living zones, a designer kitchen with butler's pantry, and a master suite with walk-in robe and ensuite. Quality build on a sought-after corner allotment.",
+    "features": ["Butler's pantry", "Two living zones", "Master with WIR & ensuite", "Ducted heating", "Landscaped gardens", "Corner block"],
+    "agentName": "Sam Rao",
+    "agentPhone": "0400 111 222",
+    "agentEmail": "sam@northline.example",
+    "images": [],
+    "createdAt": 1718000020000
+  },
+  {
+    "id": "lst_seed4",
+    "title": "Neat three-bedroom rental close to shops",
+    "status": "rent",
+    "type": "House",
+    "price": 520,
+    "priceText": "",
+    "address": "8 Marigold Avenue",
+    "suburb": "Mickleham",
+    "state": "VIC",
+    "postcode": "3064",
+    "beds": 3,
+    "baths": 2,
+    "cars": 2,
+    "land": "400 m²",
+    "description": "Comfortable family home available now. Open-plan living, a well-equipped kitchen and a secure backyard. Close to shops, schools and parks. Pets considered on application.",
+    "features": ["Dishwasher", "Split-system cooling", "Secure yard", "Close to shops", "Available now"],
+    "agentName": "Priya Nair",
+    "agentPhone": "0400 333 444",
+    "agentEmail": "rentals@northline.example",
+    "images": [],
+    "createdAt": 1718000030000
+  },
+  {
+    "id": "lst_seed5",
+    "title": "Modern two-bed apartment with city access",
+    "status": "rent",
+    "type": "Apartment",
+    "price": 450,
+    "priceText": "",
+    "address": "210/15 Station Street",
+    "suburb": "Epping",
+    "state": "VIC",
+    "postcode": "3076",
+    "beds": 2,
+    "baths": 1,
+    "cars": 1,
+    "land": "",
+    "description": "Bright, secure apartment steps from the station and Pacific Epping. Open living opens to a balcony, with a stone kitchen and built-in robes. Perfect lock-and-leave.",
+    "features": ["Secure entry", "Balcony", "Stone benchtops", "Built-in robes", "Walk to station"],
+    "agentName": "Priya Nair",
+    "agentPhone": "0400 333 444",
+    "agentEmail": "rentals@northline.example",
+    "images": [],
+    "createdAt": 1718000040000
+  },
+  {
+    "id": "lst_seed6",
+    "title": "Sold in 7 days — immaculate single-storey",
+    "status": "sold",
+    "type": "House",
+    "price": 712000,
+    "priceText": "Sold $712,000",
+    "address": "22 Wattle Court",
+    "suburb": "Donnybrook",
+    "state": "VIC",
+    "postcode": "3064",
+    "beds": 4,
+    "baths": 2,
+    "cars": 2,
+    "land": "468 m²",
+    "description": "A fantastic result for our vendors. Strong buyer interest and a smooth campaign delivered a sale in just one week. Thinking of selling nearby? Get in touch for a free appraisal.",
+    "features": ["Sold in 7 days", "Multiple offers", "Free appraisal available"],
+    "agentName": "Sam Rao",
+    "agentPhone": "0400 111 222",
+    "agentEmail": "sam@northline.example",
+    "images": [],
+    "createdAt": 1718000050000
   }
-
-  /* ---- card ---- */
-  function cardHtml(l) {
-    var statusClass = l.status === "rent" ? "rent" : l.status === "sold" ? "sold" : "";
-    return '' +
-      '<article class="card" tabindex="0" data-id="' + l.id + '">' +
-        '<div class="card-media">' +
-          '<span class="tag ' + statusClass + '">' + S.statusLabel(l.status) + '</span>' +
-          '<img loading="lazy" src="' + S.firstImage(l) + '" alt="' + S.escapeHtml(l.title) + '">' +
-        '</div>' +
-        '<div class="card-body">' +
-          '<div class="card-price">' + S.escapeHtml(S.priceDisplay(l)) + '</div>' +
-          '<div class="card-addr">' + S.escapeHtml(l.title || l.address || "") + '</div>' +
-          '<div class="card-sub">' + S.escapeHtml([l.address, l.suburb].filter(Boolean).join(", ")) + '</div>' +
-          '<div class="specs">' + specRow(l, true) + '</div>' +
-        '</div>' +
-      '</article>';
-  }
-
-  /* ---- filtering ---- */
-  function matches(l) {
-    if (l.status !== state.status) return false;
-    if (state.type && l.type !== state.type) return false;
-    if (state.beds && Number(l.beds || 0) < Number(state.beds)) return false;
-    if (state.max && l.price && Number(l.price) > Number(state.max)) return false;
-    if (state.q) {
-      var hay = [l.title, l.address, l.suburb, l.type, l.description].join(" ").toLowerCase();
-      if (hay.indexOf(state.q.toLowerCase()) === -1) return false;
-    }
-    return true;
-  }
-
-  function render() {
-    var titleMap = { sale: "Homes for sale", rent: "Homes for rent", sold: "Recently sold" };
-    listTitle.textContent = titleMap[state.status];
-    var rows = ALL.filter(matches);
-    if (!rows.length) {
-      grid.innerHTML = '<div class="empty"><strong>No matching listings yet</strong>' +
-        'Try clearing the filters, or check back soon — new properties are added regularly.</div>';
-      listCount.textContent = "";
-      return;
-    }
-    listCount.textContent = rows.length + (rows.length === 1 ? " property" : " properties");
-    grid.innerHTML = rows.map(cardHtml).join("");
-  }
-
-  /* ---- hero featured ---- */
-  function fillHero() {
-    document.getElementById("statSale").textContent = ALL.filter(function (l) { return l.status === "sale"; }).length;
-    document.getElementById("statRent").textContent = ALL.filter(function (l) { return l.status === "rent"; }).length;
-    document.getElementById("statSold").textContent = ALL.filter(function (l) { return l.status === "sold"; }).length;
-    var feat = ALL.filter(function (l) { return l.status === "sale"; })[0] || ALL[0];
-    if (!feat) return;
-    document.getElementById("haPrice").textContent = S.priceDisplay(feat);
-    document.getElementById("haAddr").textContent = [feat.address, feat.suburb].filter(Boolean).join(", ") || feat.title;
-    document.getElementById("haSpecs").innerHTML = specRow(feat, true);
-  }
-
-  /* ---- detail modal ---- */
-  var modalBack = document.getElementById("modalBack");
-  function openDetail(id) {
-    var l = ALL.filter(function (x) { return x.id === id; })[0];
-    if (!l) return;
-    var imgs = (l.images && l.images.length) ? l.images : [S.firstImage(l)];
-    var hero = document.getElementById("mHero");
-    hero.src = imgs[0]; hero.alt = l.title || "";
-    var tag = document.getElementById("mTag");
-    tag.className = "tag " + (l.status === "rent" ? "rent" : l.status === "sold" ? "sold" : "");
-    tag.textContent = S.statusLabel(l.status);
-    document.getElementById("mTitle").textContent = l.title || l.address || "";
-    document.getElementById("mAddr").textContent = [l.address, l.suburb, l.state, l.postcode].filter(Boolean).join(", ");
-    document.getElementById("mPrice").textContent = S.priceDisplay(l);
-    document.getElementById("mSpecs").innerHTML = specRow(l, true);
-    document.getElementById("mDesc").textContent = l.description || "";
-
-    var feats = document.getElementById("mFeatures");
-    feats.innerHTML = (l.features || []).filter(Boolean)
-      .map(function (f) { return "<li>" + S.escapeHtml(f) + "</li>"; }).join("");
-
-    var thumbs = document.getElementById("mThumbs");
-    thumbs.innerHTML = imgs.map(function (src, i) {
-      return '<img src="' + src + '" class="' + (i === 0 ? "is-active" : "") + '" data-src="' + src + '" alt="">';
-    }).join("");
-    thumbs.style.display = imgs.length > 1 ? "flex" : "none";
-    thumbs.querySelectorAll("img").forEach(function (t) {
-      t.addEventListener("click", function () {
-        hero.src = t.getAttribute("data-src");
-        thumbs.querySelectorAll("img").forEach(function (x) { x.classList.remove("is-active"); });
-        t.classList.add("is-active");
-      });
-    });
-
-    var name = l.agentName || "Northline Property";
-    var phone = l.agentPhone || "03 9000 0000";
-    var email = l.agentEmail || "hello@northline.example";
-    document.getElementById("mAgent").innerHTML =
-      '<div><div class="a-name">' + S.escapeHtml(name) + '</div>' +
-      '<div class="a-meta">' + S.escapeHtml(phone) + ' · ' + S.escapeHtml(email) + '</div></div>' +
-      '<div class="agent-cta">' +
-        '<a class="btn btn-dark" href="tel:' + S.escapeHtml(phone.replace(/\s/g, "")) + '">Call</a>' +
-        '<a class="btn btn-primary" href="mailto:' + S.escapeHtml(email) +
-          '?subject=' + encodeURIComponent("Enquiry: " + (l.title || l.address || "listing")) + '">Email enquiry</a>' +
-      '</div>';
-
-    modalBack.classList.add("open");
-    modalBack.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
-  }
-  function closeDetail() {
-    modalBack.classList.remove("open");
-    modalBack.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
-  }
-  document.getElementById("modalX").addEventListener("click", closeDetail);
-  modalBack.addEventListener("click", function (e) { if (e.target === modalBack) closeDetail(); });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDetail(); });
-
-  grid.addEventListener("click", function (e) {
-    var card = e.target.closest(".card"); if (card) openDetail(card.getAttribute("data-id"));
-  });
-  grid.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" || e.key === " ") {
-      var card = e.target.closest(".card");
-      if (card) { e.preventDefault(); openDetail(card.getAttribute("data-id")); }
-    }
-  });
-
-  /* ---- controls ---- */
-  var tabs = document.getElementById("statusTabs");
-  tabs.addEventListener("click", function (e) {
-    var b = e.target.closest("button"); if (!b) return;
-    state.status = b.getAttribute("data-status");
-    tabs.querySelectorAll("button").forEach(function (x) { x.classList.toggle("is-active", x === b); });
-    syncNav();
-    render();
-  });
-
-  function syncNav() {
-    document.querySelectorAll("#nav a[data-filter]").forEach(function (a) {
-      a.classList.toggle("is-active", a.getAttribute("data-filter") === state.status);
-    });
-  }
-  document.querySelectorAll("#nav a[data-filter]").forEach(function (a) {
-    a.addEventListener("click", function () {
-      state.status = a.getAttribute("data-filter");
-      tabs.querySelectorAll("button").forEach(function (x) {
-        x.classList.toggle("is-active", x.getAttribute("data-status") === state.status);
-      });
-      syncNav();
-      render();
-      document.getElementById("nav").classList.remove("open");
-    });
-  });
-
-  function applySearch() {
-    state.q = document.getElementById("q").value.trim();
-    state.type = document.getElementById("fType").value;
-    state.beds = document.getElementById("fBeds").value;
-    state.max = document.getElementById("fMax").value;
-    render();
-    document.getElementById("listings").scrollIntoView({ behavior: "smooth" });
-  }
-  document.getElementById("searchBtn").addEventListener("click", applySearch);
-  document.getElementById("q").addEventListener("keydown", function (e) { if (e.key === "Enter") applySearch(); });
-
-  document.getElementById("menuBtn").addEventListener("click", function () {
-    document.getElementById("nav").classList.toggle("open");
-  });
-
-  /* ---- boot ---- */
-  S.Listings.loadForPublic().then(function (list) {
-    ALL = list || [];
-    fillHero();
-    render();
-  });
-})();
+]
