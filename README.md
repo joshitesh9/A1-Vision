@@ -125,5 +125,14 @@ When the site looks right, here are the realistic paths, cheapest first:
 A typical path: launch on GitHub Pages now -> add Cloudflare Access when you want the admin truly
 private -> move to Supabase when multiple staff need shared, cross-device accounts and listings.
 
+## Logo & colours
+
+The A1 Vision logo is embedded directly in the files (base64), so there are no separate image
+files to manage — it appears in the header, on each listing photo (a small badge), in the footer,
+and as the full logo on the admin sign-in. The palette is built from the logo: navy `#16293F`
+(primary) and gold `#BE9655` (accent), over a warm ivory background. These live in the `:root`
+block at the top of each file as `--eucalypt` (navy/primary), `--clay` (gold/accent),
+`--paper` (background) and `--ink` (text). To change the logo later, just send me a new file.
+
 ## Rebranding
 Replace `A1 Vision` (and the placeholder phone/email/address in the footer of `index.html`) with your own. Colours live in the `:root` block at the top of each file: `--eucalypt` (primary), `--clay` (accent), `--paper` (background), `--ink` (text).
